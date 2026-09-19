@@ -25,16 +25,17 @@ test("ACL case from setup through source-backed explanation and next action", as
   await expect(
     page.getByRole("heading", {
       name: "Confirm the positive Lachman finding",
+          exact: true,
     }),
   ).toBeVisible();
   await expect(page.getByText("$1,450", { exact: false })).toBeVisible();
-  await expect(page.getByText("Verified", { exact: true })).toHaveCount(2);
+  await expect(page.getByText("Verified", { exact: true })).toHaveCount(1);
   await page
     .getByRole("button", { name: "Explain Conservative treatment duration" })
     .click();
   const drawer = page.getByRole("dialog");
   await expect(
-    drawer.getByText("PT Progress Note, page 2", { exact: true }),
+    drawer.getByText("PT Encounter Timeline, synthetic", { exact: true }),
   ).toBeVisible();
   await expect(
     drawer.getByText("ACL Policy 2026.09, Section 4.3", { exact: true }),
@@ -45,7 +46,7 @@ test("ACL case from setup through source-backed explanation and next action", as
   ).toBeFocused();
   await page.getByRole("button", { name: "Review missing evidence" }).click();
   await expect(
-    drawer.getByText("No supporting source was identified in this analysis."),
+    drawer.getByText("Orthopedic Note, page 1", { exact: true }),
   ).toBeVisible();
   await expect(
     drawer.getByText("Confirm the positive Lachman finding", {
@@ -54,7 +55,7 @@ test("ACL case from setup through source-backed explanation and next action", as
   ).toBeVisible();
   await page.getByRole("button", { name: "Close dialog" }).click();
   await page.getByRole("button", { name: "Needs attention 2" }).click();
-  await expect(page.getByRole("button", { name: /^Explain / })).toHaveCount(1);
+  await expect(page.getByRole("button", { name: /^Explain / })).toHaveCount(2);
   await page.emulateMedia({ media: "print" });
   await expect(page.getByRole("button", { name: /^Explain / })).toHaveCount(7);
   await page.emulateMedia({ media: "screen" });
@@ -126,4 +127,18 @@ test("mobile flow has no horizontal overflow and explanation remains usable", as
   await expect(
     page.getByRole("dialog", { name: "From case to clarity" }),
   ).toBeVisible();
+});
+
+
+test("offline demo enforces human review and verified-agent ordering", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: "Analyze Authorization Readiness" }).click();
+  await page.getByRole("button", { name: "Confirm instability finding" }).click();
+  await expect(page.getByText("6 of 7", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Verify PT agent" }).click();
+  await expect(page.getByText("Verified", { exact: true })).toHaveCount(2);
+  await page.getByRole("button", { name: "Add verified 14-day PT record" }).click();
+  await expect(page.getByRole("img", { name: "100% authorization readiness" })).toBeVisible();
+  await expect(page.getByText("Case is ready for human review")).toBeVisible();
+  await expect(page.getByText(/CASE_READY — all seven requirements satisfied/)).toBeVisible();
 });

@@ -106,7 +106,7 @@ test("partial details and unavailable identity are visible without invented cita
   ).toBeVisible();
   await expect(page.getByText("Not verified", { exact: true })).toHaveCount(2);
   await page
-    .getByRole("button", { name: "Explain Conservative treatment" })
+    .getByRole("button", { name: "Explain Persistent symptoms" })
     .click();
   await expect(
     page.getByText(
