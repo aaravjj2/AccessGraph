@@ -42,7 +42,7 @@ describe("canonical Orchestrator boundary", () => {
     ["wrong patient", { ...fixture, patient_id: "P999" }],
     ["wrong procedure", { ...fixture, procedure: "OTHER" }],
     ["unbounded readiness", { ...fixture, authorization_readiness: 1.5 }],
-    ["inconsistent counts", { ...fixture, requirements_met: 5 }],
+    ["inconsistent counts", { ...fixture, requirements_met: 8 }],
     [
       "reversed cost",
       {
@@ -138,7 +138,7 @@ describe("explanations without backend coupling", () => {
       { ...fixture, explanations: [fixture.explanations[1]] },
       request,
     );
-    expect(criteriaFor(partial)).toHaveLength(2);
+    expect(criteriaFor(partial)).toHaveLength(3);
     expect(analysisNotice(partial)?.title).toContain("unavailable");
   });
   it("never invents sources absent from the response", () => {
