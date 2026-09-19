@@ -34,6 +34,32 @@ def test_initial_blocking_set_is_minimal_and_ordered():
     assert [item["criterion_id"] for item in missing] == ["FUNCTIONAL_INSTABILITY", "PT_DURATION"]
 
 
+def test_case_assistant_explains_missing_evidence_with_existing_citations():
+    response = client.post("/case-assistant", json={**VALID, "question": "What is blocking this case?"})
+    assert response.status_code == 200
+    body = response.json()
+    assert "5 of 7" in body["answer"]
+    assert "Confirm the positive Lachman finding" in body["answer"]
+    assert "PT Encounter Timeline, synthetic" in body["citations"]
+    assert "does not determine coverage" in body["disclaimer"]
+
+
+def test_case_assistant_answers_cost_without_claiming_coverage():
+    response = client.post("/case-assistant", json={**VALID, "question": "What will the patient pay?"})
+    assert response.status_code == 200
+    assert "$1,450–$1,900 USD" in response.json()["answer"]
+    assert "does not determine coverage" in response.json()["disclaimer"]
+
+
+def test_case_assistant_requires_a_valid_case_and_question():
+    invalid_case = client.post("/case-assistant", json={**VALID, "patient_id": "P404", "question": "What is missing?"})
+    invalid_question = client.post("/case-assistant", json=VALID)
+    assert invalid_case.status_code == 422
+    assert invalid_case.json()["code"] == "NO_CLINICAL_EVIDENCE"
+    assert invalid_question.status_code == 400
+    assert invalid_question.json()["code"] == "INVALID_REQUEST"
+
+
 def test_unknown_case_and_policy_use_machine_readable_errors():
     wrong_case = client.post("/analyze-case", json={**VALID, "patient_id": "P404"})
     wrong_policy = client.post("/analyze-case", json={**VALID, "insurer": "Other"})

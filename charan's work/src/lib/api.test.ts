@@ -1,7 +1,16 @@
 import { describe, expect, it, vi } from "vitest";
 import fixture from "../mocks/authorizationResult.json";
 import request from "../mocks/analyzeCaseRequest.json";
-import { addVerifiedPtEvidence, AnalysisError, analyzeCase, confirmInstability, parseAuthorizationResult, resetDemoState, verifyPtAgent } from "./api";
+import {
+  addVerifiedPtEvidence,
+  AnalysisError,
+  analyzeCase,
+  askCaseAssistant,
+  confirmInstability,
+  parseAuthorizationResult,
+  resetDemoState,
+  verifyPtAgent,
+} from "./api";
 import { analysisNotice, criteriaFor, narrative } from "./presentation";
 
 describe("canonical Orchestrator boundary", () => {
@@ -167,6 +176,16 @@ describe("explanations without backend coupling", () => {
 
 
 describe("offline synthetic lifecycle", () => {
+  it("answers side-agent questions from the same case result and sources", async () => {
+    resetDemoState();
+    const response = await askCaseAssistant(request, "What is blocking this case?");
+    expect(response.answer).toContain("5 of 7");
+    expect(response.answer).toContain("Confirm the positive Lachman finding");
+    expect(response.citations).toContain("PT Encounter Timeline, synthetic");
+    expect(response.disclaimer).toContain("does not determine coverage");
+    await expect(askCaseAssistant(request, " ")).rejects.toThrow();
+  });
+
   it("moves only through the PRD-approved 5/7 -> 6/7 -> 7/7 sequence", async () => {
     resetDemoState();
     const initial = await analyzeCase(request, { baseUrl: "" });

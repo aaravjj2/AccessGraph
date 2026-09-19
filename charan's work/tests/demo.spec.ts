@@ -62,6 +62,21 @@ test("ACL case from setup through source-backed explanation and next action", as
   expect(errors).toEqual([]);
 });
 
+test("Case Guide answers from the current case with source context", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: "Ask Case Guide" }).click();
+  const guide = page.getByRole("dialog", { name: "AccessGraph Case Guide" });
+  await expect(guide).toBeVisible();
+  await guide.getByRole("button", { name: "What is blocking this case?" }).click();
+  await expect(guide.getByText(/5 of 7 criteria are satisfied/)).toBeVisible();
+  await expect(
+    guide.getByText("PT Encounter Timeline, synthetic", { exact: false }),
+  ).toBeVisible();
+  await expect(guide.getByText(/does not determine coverage/)).toBeVisible();
+  await guide.getByRole("button", { name: "Close Case Guide" }).click();
+  await expect(guide).toBeHidden();
+});
+
 test("cancel returns to setup and local files do not alter analyzed evidence", async ({
   page,
 }) => {

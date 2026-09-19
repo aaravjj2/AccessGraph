@@ -13,6 +13,7 @@ import {
   Layers3,
   Leaf,
   Menu,
+  MessageCircleMore,
   Printer,
   ShieldCheck,
   X,
@@ -34,6 +35,7 @@ import {
   GuideDialog,
   type LocalRecord,
 } from "./components/Dialogs";
+import { CaseSideAgent } from "./components/CaseSideAgent";
 import {
   AnalysisError,
   addVerifiedPtEvidence,
@@ -42,8 +44,13 @@ import {
   errorMessages,
   verifyPtAgent,
   isMockMode,
+  askCaseAssistant as askCaseAssistantApi,
 } from "./lib/api";
-import type { AnalyzeCaseRequest, AuthorizationResult } from "./lib/contracts";
+import type {
+  AnalyzeCaseRequest,
+  AuthorizationResult,
+  CaseAssistantResponse,
+} from "./lib/contracts";
 import { analysisNotice, criteriaFor } from "./lib/presentation";
 import initialRequest from "./mocks/analyzeCaseRequest.json";
 
@@ -62,6 +69,7 @@ export default function App() {
   const [records, setRecords] = useState<LocalRecord[]>([]);
   const [mobileNav, setMobileNav] = useState(false);
   const [lifecycleBusy, setLifecycleBusy] = useState(false);
+  const [assistantOpen, setAssistantOpen] = useState(false);
   const controller = useRef<AbortController | null>(null);
   const heading = useRef<HTMLHeadingElement>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -145,6 +153,9 @@ export default function App() {
   function openDocuments() {
     setDialog("documents");
     setMobileNav(false);
+  }
+  function askCaseAssistant(question: string): Promise<CaseAssistantResponse> {
+    return askCaseAssistantApi(request, question);
   }
   const explanation = result
     ? criteriaFor(result).find(
@@ -482,6 +493,20 @@ export default function App() {
           onClose={() => setSelectedCriterion(null)}
         />
       ) : null}
+      <button
+        className="assistant-launcher"
+        aria-expanded={assistantOpen}
+        aria-haspopup="dialog"
+        onClick={() => setAssistantOpen(true)}
+      >
+        <MessageCircleMore size={18} />
+        Ask Case Guide
+      </button>
+      <CaseSideAgent
+        open={assistantOpen}
+        onClose={() => setAssistantOpen(false)}
+        onAsk={askCaseAssistant}
+      />
     </div>
   );
 }

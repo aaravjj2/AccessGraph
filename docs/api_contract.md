@@ -30,6 +30,41 @@ Request contains exactly `patient_id`, `procedure`, and `insurer`. The response 
 | GET | `/cases/P001/audit` | Synthetic audit trail |
 | POST | `/cases/P001/reset` | Demo reset |
 
+### Case Guide side agent
+
+```http
+POST /case-assistant
+Content-Type: application/json
+```
+
+This is also an Orchestrator-owned frontend boundary. Its request extends the
+canonical case selection with a bounded `question` string; it does not receive
+raw clinical documents or policy documents from the frontend.
+
+```json
+{
+  "patient_id": "P001",
+  "procedure": "ACL_RECONSTRUCTION",
+  "insurer": "ExampleHealth PPO",
+  "question": "What is blocking this case?"
+}
+```
+
+It returns deterministic, case-aware guidance with only references already
+present in the evaluated `AuthorizationResult`:
+
+```json
+{
+  "answer": "The case is currently blocked: 5 of 7 criteria are satisfied.",
+  "citations": ["Orthopedic Note, page 1"],
+  "suggested_questions": ["What is blocking this case?"],
+  "disclaimer": "Case guidance is based on the available synthetic evidence and policy criteria. It does not determine coverage or insurer authorization."
+}
+```
+
+The side agent is read-only: it never confirms evidence, accepts records, or
+changes case state. It is readiness support, not an insurer-decision service.
+
 Errors are JSON objects with `code` and `message`. The service permits only the local HCP frontend origins `http://127.0.0.1:5173` and `http://localhost:5173` in this demo.
 
 ## Policy Agent

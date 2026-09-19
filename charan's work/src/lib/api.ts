@@ -2,8 +2,11 @@ import fixture from "../mocks/authorizationResult.json";
 import {
   analyzeCaseRequestSchema,
   authorizationResultSchema,
+  caseAssistantRequestSchema,
+  caseAssistantResponseSchema,
   type AnalyzeCaseRequest,
   type AuthorizationResult,
+  type CaseAssistantResponse,
 } from "./contracts";
 
 export type AnalysisErrorCode =
@@ -57,6 +60,32 @@ function mockResult(request: AnalyzeCaseRequest): AuthorizationResult {
     result.missing_requirements = [];
   }
   return parseAuthorizationResult(result, request);
+}
+
+function mockCaseAssistant(request: AnalyzeCaseRequest, question: string): CaseAssistantResponse {
+  const result = mockResult(request);
+  const normalized = question.toLowerCase();
+  const disclaimer = "Case guidance is based on the available synthetic evidence and policy criteria. It does not determine coverage or insurer authorization.";
+  const suggestions = ["What is blocking this case?", "What does the cost estimate mean?", "Which sources support the findings?"];
+  const citationsFor = (ids: string[]) => result.explanations
+    .filter(item => ids.includes(item.criterion_id))
+    .flatMap(item => [item.patient_evidence, item.payer_requirement])
+    .map(value => value.match(/\[Source:\s*([^\]]+)\]/)?.[1])
+    .filter((value): value is string => Boolean(value))
+    .filter((value, index, values) => values.indexOf(value) === index);
+
+  if (/cost|price|out of pocket|deductible|pay/.test(normalized)) {
+    const cost = result.estimated_patient_cost;
+    return { answer: `The current synthetic estimate is $${cost.low.toLocaleString()}–$${cost.high.toLocaleString()} ${cost.currency}. It is based on ${cost.basis.toLowerCase()}; actual patient responsibility can change with benefits, billing, and coverage.`, citations: [], suggested_questions: suggestions, disclaimer };
+  }
+  if (/agent|identity|verify|trusted/.test(normalized)) {
+    return { answer: `The synthetic provider/PT agent is ${result.identity_status.provider_agent_verified ? "verified" : "not yet verified"}; the synthetic insurer agent is ${result.identity_status.insurer_agent_verified ? "verified" : "not yet verified"}. Verification controls whether external PT evidence can enter this demo case.`, citations: [], suggested_questions: suggestions, disclaimer };
+  }
+  if (/source|document|policy|evidence|support/.test(normalized)) {
+    return { answer: "The findings are backed by the source references listed below. Open a criterion in the case review to compare the patient evidence with the payer requirement.", citations: citationsFor(result.explanations.map(item => item.criterion_id)), suggested_questions: suggestions, disclaimer };
+  }
+  const missing = result.missing_requirements;
+  return { answer: result.status === "READY_FOR_REVIEW" ? `All ${result.requirements_total} synthetic criteria are currently satisfied. The case is ready for human review, not guaranteed insurer approval.` : `The case is currently ${result.status.toLowerCase().replaceAll("_", " ")}: ${result.requirements_met} of ${result.requirements_total} criteria are satisfied. The next actions are: ${missing.map(item => item.recommended_action).join("; ")}.`, citations: citationsFor(missing.map(item => item.criterion_id)), suggested_questions: suggestions, disclaimer };
 }
 
 export function parseAuthorizationResult(data: unknown, request: AnalyzeCaseRequest): AuthorizationResult {
@@ -153,4 +182,17 @@ export async function addVerifiedPtEvidence(request: AnalyzeCaseRequest): Promis
     await requestJson(`/cases/${request.patient_id}/external-pt-evidence`, { method: "POST" }),
     request,
   );
+}
+
+export async function askCaseAssistant(input: AnalyzeCaseRequest, question: string): Promise<CaseAssistantResponse> {
+  const request = caseAssistantRequestSchema.parse({ ...input, question });
+  if (!configuredUrl) return mockCaseAssistant(request, request.question);
+  const response = await requestJson("/case-assistant", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(request),
+  });
+  const parsed = caseAssistantResponseSchema.safeParse(response);
+  if (!parsed.success) throw new AnalysisError("MALFORMED_RESPONSE");
+  return parsed.data;
 }

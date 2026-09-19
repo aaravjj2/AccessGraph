@@ -7,6 +7,17 @@ export const analyzeCaseRequestSchema = z.object({
   insurer: text,
 });
 
+export const caseAssistantRequestSchema = analyzeCaseRequestSchema.extend({
+  question: z.string().trim().min(1).max(1200),
+});
+
+export const caseAssistantResponseSchema = z.object({
+  answer: text,
+  citations: z.array(text).max(20),
+  suggested_questions: z.array(text).min(1).max(6),
+  disclaimer: text,
+});
+
 export const authorizationResultSchema = z
   .object({
     patient_id: text,
@@ -98,6 +109,8 @@ export const authorizationResultSchema = z
   });
 
 export type AnalyzeCaseRequest = z.infer<typeof analyzeCaseRequestSchema>;
+export type CaseAssistantRequest = z.infer<typeof caseAssistantRequestSchema>;
+export type CaseAssistantResponse = z.infer<typeof caseAssistantResponseSchema>;
 export type AuthorizationResult = z.infer<typeof authorizationResultSchema>;
 export type Explanation = AuthorizationResult["explanations"][number];
 export type MissingRequirement =

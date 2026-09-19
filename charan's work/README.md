@@ -29,7 +29,7 @@ Create `.env.local` with one variable, then restart Vite (or rebuild for product
 VITE_ORCHESTRATOR_URL=http://127.0.0.1:8000
 ```
 
-Blank or unset uses the deterministic local mock. A nonempty origin uses **only** `POST {origin}/analyze-case`; there is no silent fallback to mock results when a live request fails. The service must permit CORS from the frontend origin and accept JSON. Do not put credentials in `VITE_` variables; those are public build-time values.
+Blank or unset uses the deterministic local mock. A nonempty origin uses only the Orchestrator: `POST {origin}/analyze-case` for readiness and `POST {origin}/case-assistant` for the Case Guide side agent. There is no silent fallback to mock results when a live request fails. The service must permit CORS from the frontend origin and accept JSON. Do not put credentials in `VITE_` variables; those are public build-time values.
 
 The request contains exactly:
 
@@ -58,6 +58,8 @@ Synthetic source fixtures: `public/samples/clinical-records.txt` and `public/sam
 7. Open **Review missing evidence** to inspect the physical exam gap and recommended action.
 
 The UI describes criteria alignment, never a guaranteed chance of insurer approval. Only the shared ACL case is currently selectable. Additional cases need registered case/plan options and corresponding Orchestrator support.
+
+The **Ask Case Guide** button opens a side agent grounded in the currently selected synthetic case. It can explain readiness gaps, source references, cost, and trusted-agent status. Its response is deterministic, read-only, and always carries a readiness-not-coverage disclaimer; it does not send documents to any external model or call any service other than the Orchestrator.
 
 ## Integration limits handled explicitly
 

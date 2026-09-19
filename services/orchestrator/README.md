@@ -20,4 +20,12 @@ uvicorn app:app --reload --port 8000
 4. `POST /cases/P001/external-pt-evidence` accepts a verified 14-day record and moves the case to `READY_FOR_REVIEW`.
 5. `GET /cases/P001/audit` shows the deterministic audit timeline.
 
+## Case Guide side agent
+
+`POST /case-assistant` accepts the same case selection as `/analyze-case` plus
+a `question`. It returns deterministic, source-aware guidance based only on the
+current `AuthorizationResult`. The endpoint is read-only: it cannot confirm
+findings, attach records, or submit a case. Its response explicitly states that
+readiness guidance is not coverage or insurer authorization.
+
 Synthetic data only. This is readiness support, not an insurer decision engine.

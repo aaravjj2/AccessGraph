@@ -37,6 +37,17 @@ class AnalyzeRequest(BaseModel):
     insurer: str = Field(min_length=1, max_length=160)
 
 
+class CaseAssistantRequest(AnalyzeRequest):
+    question: str = Field(min_length=1, max_length=1200)
+
+
+class CaseAssistantResponse(BaseModel):
+    answer: str
+    citations: list[str]
+    suggested_questions: list[str]
+    disclaimer: str
+
+
 class MissingRequirement(BaseModel):
     criterion_id: str
     description: str
@@ -131,6 +142,95 @@ def _source(text: str, source: str) -> str:
     return f"{text} [Source: {source}]"
 
 
+def _citations(*explanations: Explanation) -> list[str]:
+    """Return only references already contained in the evaluated case."""
+    citations: list[str] = []
+    for explanation in explanations:
+        for text in (explanation.patient_evidence, explanation.payer_requirement):
+            if "[Source: " not in text:
+                continue
+            citation = text.split("[Source: ", maxsplit=1)[1].rstrip("]")
+            if citation not in citations:
+                citations.append(citation)
+    return citations
+
+
+def _assistant_reply(question: str, result: AuthorizationResult) -> CaseAssistantResponse:
+    """Provide bounded, deterministic case guidance for the HCP side agent."""
+    normalized = " ".join(question.lower().split())
+    by_id = {item.criterion_id: item for item in result.explanations}
+    missing_ids = [item.criterion_id for item in result.missing_requirements]
+    missing_explanations = [by_id[item_id] for item_id in missing_ids if item_id in by_id]
+    suggestions = [
+        "What is blocking this case?",
+        "What does the cost estimate mean?",
+        "Which sources support the findings?",
+    ]
+    disclaimer = "Case guidance is based on the available synthetic evidence and policy criteria. It does not determine coverage or insurer authorization."
+
+    if any(term in normalized for term in ("cost", "price", "out of pocket", "deductible", "pay")):
+        cost = result.estimated_patient_cost
+        return CaseAssistantResponse(
+            answer=f"The current synthetic estimate is ${cost.low:,}–${cost.high:,} {cost.currency}. It is based on {cost.basis.lower()}; actual patient responsibility can change with benefits, billing, and coverage.",
+            citations=[],
+            suggested_questions=["What is blocking this case?", "Which sources support the findings?", "What should the care team do next?"],
+            disclaimer=disclaimer,
+        )
+
+    if any(term in normalized for term in ("agent", "identity", "verify", "trusted")):
+        provider = "verified" if result.identity_status.provider_agent_verified else "not yet verified"
+        insurer = "verified" if result.identity_status.insurer_agent_verified else "not yet verified"
+        return CaseAssistantResponse(
+            answer=f"The synthetic provider/PT agent is {provider}; the synthetic insurer agent is {insurer}. Verification controls whether external PT evidence can enter this demo case.",
+            citations=[],
+            suggested_questions=["What is blocking this case?", "What should the care team do next?", "What does the cost estimate mean?"],
+            disclaimer=disclaimer,
+        )
+
+    if any(term in normalized for term in ("source", "document", "policy", "evidence", "support")):
+        citations = _citations(*result.explanations)
+        return CaseAssistantResponse(
+            answer="The findings are backed by the source references listed below. Open a criterion in the case review to compare the patient evidence with the payer requirement.",
+            citations=citations,
+            suggested_questions=["What is blocking this case?", "Why is PT duration flagged?", "What should the care team do next?"],
+            disclaimer=disclaimer,
+        )
+
+    if any(term in normalized for term in ("pt", "therapy", "conservative", "duration")):
+        pt = by_id["PT_DURATION"]
+        return CaseAssistantResponse(
+            answer=f"{pt.patient_evidence.split(' [Source:')[0]} {pt.payer_requirement.split(' [Source:')[0]} In this demo, verified PT evidence can add the remaining documented days after the PT agent is verified.",
+            citations=_citations(pt),
+            suggested_questions=["How do I verify the PT agent?", "What is blocking this case?", "Which sources support the findings?"],
+            disclaimer=disclaimer,
+        )
+
+    if any(term in normalized for term in ("instability", "lachman", "exam", "physical")):
+        instability = by_id["FUNCTIONAL_INSTABILITY"]
+        return CaseAssistantResponse(
+            answer=f"{instability.patient_evidence.split(' [Source:')[0]} The next step is to confirm that finding through the human-review control in this synthetic workflow.",
+            citations=_citations(instability),
+            suggested_questions=["What is blocking this case?", "Why is PT duration flagged?", "Which sources support the findings?"],
+            disclaimer=disclaimer,
+        )
+
+    if result.status == "READY_FOR_REVIEW":
+        return CaseAssistantResponse(
+            answer=f"All {result.requirements_total} synthetic criteria are currently satisfied. The case is ready for human review, not guaranteed insurer approval. Review the source rationale with the care team before submitting.",
+            citations=_citations(*result.explanations),
+            suggested_questions=["Which sources support the findings?", "What does the cost estimate mean?", "What should the care team do next?"],
+            disclaimer=disclaimer,
+        )
+
+    actions = "; ".join(item.recommended_action for item in result.missing_requirements)
+    return CaseAssistantResponse(
+        answer=f"The case is currently {result.status.lower().replace('_', ' ')}: {result.requirements_met} of {result.requirements_total} criteria are satisfied. The next actions are: {actions}.",
+        citations=_citations(*missing_explanations),
+        suggested_questions=suggestions,
+        disclaimer=disclaimer,
+    )
+
+
 def evaluate() -> AuthorizationResult:
     """Evaluate all seven synthetic requirements without side effects."""
     pt_days = INITIAL_PT_DAYS + (EXTERNAL_PT_DAYS if state.external_pt_received else 0)
@@ -184,6 +284,13 @@ def health() -> dict:
 def analyze_case(request: AnalyzeRequest) -> AuthorizationResult:
     _validate(request)
     return evaluate()
+
+
+@app.post("/case-assistant", response_model=CaseAssistantResponse)
+def case_assistant(request: CaseAssistantRequest) -> CaseAssistantResponse:
+    """Bounded side-agent endpoint. It never changes case state."""
+    _validate(request)
+    return _assistant_reply(request.question, evaluate())
 
 
 @app.post("/cases/{case_id}/confirm-instability", response_model=AuthorizationResult)
