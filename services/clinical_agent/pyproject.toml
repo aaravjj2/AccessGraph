@@ -1,0 +1,14 @@
+[project]
+name = "accessgraph-clinical-agent"
+version = "1.0.0"
+description = "AccessGraph Clinical Evidence Agent - converts synthetic medical records into schema-valid ClinicalEvidence JSON."
+requires-python = ">=3.11"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = [".", "tests"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"

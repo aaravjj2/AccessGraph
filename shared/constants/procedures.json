@@ -1,0 +1,17 @@
+{
+  "description": "Canonical procedure codes and clinical evidence field names shared across AccessGraph modules.",
+  "procedures": [
+    {
+      "code": "ACL_RECONSTRUCTION",
+      "display_name": "ACL reconstruction",
+      "supported_by": ["clinical_agent"]
+    }
+  ],
+  "clinical_evidence_fields": [
+    { "name": "mri_confirmed", "type": "boolean", "absent_value": false },
+    { "name": "physical_therapy_weeks", "type": "integer", "absent_value": 0 },
+    { "name": "persistent_instability", "type": "boolean", "absent_value": false },
+    { "name": "nsaid_trial", "type": "boolean", "absent_value": false },
+    { "name": "recent_physical_exam", "type": "boolean", "absent_value": false }
+  ]
+}

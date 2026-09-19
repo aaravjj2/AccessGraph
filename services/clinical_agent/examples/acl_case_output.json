@@ -1,0 +1,50 @@
+{
+  "patient_id": "P001",
+  "procedure": "ACL_RECONSTRUCTION",
+  "diagnosis": "ACL tear",
+  "evidence": {
+    "mri_confirmed": true,
+    "physical_therapy_weeks": 8,
+    "persistent_instability": true,
+    "nsaid_trial": true,
+    "recent_physical_exam": false
+  },
+  "sources": [
+    {
+      "fact": "Diagnosis documented: ACL tear",
+      "source_id": "mri_01",
+      "source_label": "MRI Report",
+      "location": "page 1"
+    },
+    {
+      "fact": "MRI confirmed ACL tear",
+      "source_id": "mri_01",
+      "source_label": "MRI Report",
+      "location": "page 1"
+    },
+    {
+      "fact": "8 weeks physical therapy completed",
+      "source_id": "pt_note_01",
+      "source_label": "PT Progress Note",
+      "location": "page 2"
+    },
+    {
+      "fact": "NSAID trial documented",
+      "source_id": "med_hx_01",
+      "source_label": "Medication and Conservative Care History",
+      "location": "page 1"
+    },
+    {
+      "fact": "Persistent knee instability reported",
+      "source_id": "pt_note_01",
+      "source_label": "PT Progress Note",
+      "location": "page 2"
+    },
+    {
+      "fact": "Most recent documented physical examination is 166 days old (outside the 90-day recency window)",
+      "source_id": "ortho_01",
+      "source_label": "Orthopedic Consultation Note",
+      "location": "page 1"
+    }
+  ]
+}

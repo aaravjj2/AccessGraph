@@ -1,0 +1,120 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://accessgraph.dev/schemas/clinical_evidence.schema.json",
+  "description": "Structured, source-backed clinical evidence produced by the AccessGraph Clinical Evidence Agent.",
+  "$defs": {
+    "Evidence": {
+      "additionalProperties": false,
+      "properties": {
+        "mri_confirmed": {
+          "title": "Mri Confirmed",
+          "type": "boolean"
+        },
+        "physical_therapy_weeks": {
+          "minimum": 0,
+          "title": "Physical Therapy Weeks",
+          "type": "integer"
+        },
+        "persistent_instability": {
+          "title": "Persistent Instability",
+          "type": "boolean"
+        },
+        "nsaid_trial": {
+          "title": "Nsaid Trial",
+          "type": "boolean"
+        },
+        "recent_physical_exam": {
+          "title": "Recent Physical Exam",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "mri_confirmed",
+        "physical_therapy_weeks",
+        "persistent_instability",
+        "nsaid_trial",
+        "recent_physical_exam"
+      ],
+      "title": "Evidence",
+      "type": "object"
+    },
+    "SourceRef": {
+      "additionalProperties": false,
+      "description": "One citation supporting one extracted fact.",
+      "properties": {
+        "fact": {
+          "minLength": 1,
+          "title": "Fact",
+          "type": "string"
+        },
+        "source_id": {
+          "minLength": 1,
+          "title": "Source Id",
+          "type": "string"
+        },
+        "source_label": {
+          "minLength": 1,
+          "title": "Source Label",
+          "type": "string"
+        },
+        "location": {
+          "minLength": 1,
+          "title": "Location",
+          "type": "string"
+        }
+      },
+      "required": [
+        "fact",
+        "source_id",
+        "source_label",
+        "location"
+      ],
+      "title": "SourceRef",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "patient_id": {
+      "minLength": 1,
+      "title": "Patient Id",
+      "type": "string"
+    },
+    "procedure": {
+      "minLength": 1,
+      "title": "Procedure",
+      "type": "string"
+    },
+    "diagnosis": {
+      "anyOf": [
+        {
+          "minLength": 1,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Diagnosis"
+    },
+    "evidence": {
+      "$ref": "#/$defs/Evidence"
+    },
+    "sources": {
+      "items": {
+        "$ref": "#/$defs/SourceRef"
+      },
+      "title": "Sources",
+      "type": "array"
+    }
+  },
+  "required": [
+    "patient_id",
+    "procedure",
+    "diagnosis",
+    "evidence",
+    "sources"
+  ],
+  "title": "ClinicalEvidence",
+  "type": "object"
+}

@@ -1,0 +1,32 @@
+{
+  "patient_id": "P001",
+  "procedure": "ACL_RECONSTRUCTION",
+  "as_of_date": "2026-09-15",
+  "recency_window_days": 90,
+  "documents": [
+    {
+      "source_id": "ortho_01",
+      "source_label": "Orthopedic Consultation Note",
+      "document_date": "2026-04-02",
+      "text": "ORTHOPEDIC CONSULTATION NOTE\nPatient: Synthetic Patient A (P001)\nDate of Service: 2026-04-02\n\nHistory of Present Illness:\nRecreational soccer player presents after a non-contact pivoting injury to the left knee. Reports immediate swelling and a sensation of the knee giving way when changing direction.\n\nPhysical Examination:\nLeft knee with moderate effusion. Lachman test positive with a soft endpoint. Anterior drawer positive. McMurray negative. Flexion limited by pain and guarding.\n\nAssessment:\nSuspected left anterior cruciate ligament tear.\n\nPlan:\nObtain MRI of the left knee to confirm. Recommend a 12 week course of physical therapy before any consideration of operative management. Will prescribe naproxen 500 mg twice daily."
+    },
+    {
+      "source_id": "mri_01",
+      "source_label": "MRI Report",
+      "document_date": "2026-07-20",
+      "text": "MRI LEFT KNEE WITHOUT CONTRAST\nAccession: MR-2026-0720-114\nDate of Service: 2026-07-20\nIndication: Left knee instability following a pivoting injury.\n\nFINDINGS:\nAnterior cruciate ligament: Complete full-thickness tear of the anterior cruciate ligament at the femoral attachment, with fiber discontinuity and adjacent marrow edema.\nPosterior cruciate ligament: Intact.\nMenisci: No meniscal tear identified.\nCartilage: No focal chondral defect.\n\nIMPRESSION:\n1. Complete tear of the anterior cruciate ligament.\n2. Small joint effusion."
+    },
+    {
+      "source_id": "pt_note_01",
+      "source_label": "PT Progress Note",
+      "document_date": "2026-09-10",
+      "text": "PHYSICAL THERAPY PROGRESS NOTE\nPatient: Synthetic Patient A (P001)\nDate of Service: 2026-09-10\nReferring Provider: Orthopedic Surgery\n\nPlan of Care: Supervised rehabilitation for a left knee ligamentous injury.\nAttendance: 16 of 16 scheduled visits completed.\nHome exercise program reviewed and updated at each visit.\n\n--- Page 2 ---\nInterim Summary:\nThe patient has completed 8 weeks of supervised physical therapy, attending twice weekly since 2026-07-16.\nStrength testing improved to 4+/5 on the involved side.\nDespite completion of the full course, the patient continues to report persistent instability of the left knee with pivoting and with descending stairs.\nFunctional testing was deferred because of ongoing giving way episodes."
+    },
+    {
+      "source_id": "med_hx_01",
+      "source_label": "Medication and Conservative Care History",
+      "document_date": "2026-09-10",
+      "text": "MEDICATION AND CONSERVATIVE CARE HISTORY\nPatient: Synthetic Patient A (P001)\nDate of Service: 2026-09-10\n\nNaproxen 500 mg twice daily was taken for 6 weeks beginning 2026-04-05, with partial relief of pain and no improvement in mechanical symptoms.\nIbuprofen 600 mg as needed was subsequently trialed.\nNo opioid analgesics were prescribed.\nBracing: Hinged knee brace issued 2026-04-10 and worn during activity."
+    }
+  ]
+}

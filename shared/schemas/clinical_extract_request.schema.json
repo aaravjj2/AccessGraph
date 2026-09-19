@@ -1,0 +1,113 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://accessgraph.dev/schemas/clinical_extract_request.schema.json",
+  "description": "Request body for POST /clinical/extract.",
+  "$defs": {
+    "ClinicalDocument": {
+      "description": "Input is lenient: unknown keys are ignored, not rejected.",
+      "properties": {
+        "source_id": {
+          "minLength": 1,
+          "title": "Source Id",
+          "type": "string"
+        },
+        "source_label": {
+          "minLength": 1,
+          "title": "Source Label",
+          "type": "string"
+        },
+        "text": {
+          "title": "Text",
+          "type": "string"
+        },
+        "document_date": {
+          "anyOf": [
+            {
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Document Date"
+        },
+        "location": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Location"
+        }
+      },
+      "required": [
+        "source_id",
+        "source_label",
+        "text"
+      ],
+      "title": "ClinicalDocument",
+      "type": "object"
+    }
+  },
+  "properties": {
+    "patient_id": {
+      "minLength": 1,
+      "title": "Patient Id",
+      "type": "string"
+    },
+    "procedure": {
+      "minLength": 1,
+      "title": "Procedure",
+      "type": "string"
+    },
+    "documents": {
+      "items": {
+        "$ref": "#/$defs/ClinicalDocument"
+      },
+      "minItems": 1,
+      "title": "Documents",
+      "type": "array"
+    },
+    "as_of_date": {
+      "anyOf": [
+        {
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "As Of Date"
+    },
+    "recency_window_days": {
+      "anyOf": [
+        {
+          "exclusiveMinimum": 0,
+          "maximum": 3650,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Recency Window Days"
+    }
+  },
+  "required": [
+    "patient_id",
+    "procedure",
+    "documents"
+  ],
+  "title": "ExtractRequest",
+  "type": "object"
+}

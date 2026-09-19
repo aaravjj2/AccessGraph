@@ -1,0 +1,626 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Clinical Evidence Agent — QC Console</title>
+<style>
+  :root {
+    --bg: #f5f6f8;
+    --panel: #ffffff;
+    --border: #dee2e7;
+    --text: #15181c;
+    --muted: #6b7280;
+    --accent: #2563eb;
+    --accent-dark: #1d4ed8;
+    --ok-fg: #14532d; --ok-bg: #dcfce7; --ok-br: #86efac;
+    --no-fg: #3f3f46; --no-bg: #f1f2f4; --no-br: #d4d4d8;
+    --bad-fg: #7f1d1d; --bad-bg: #fee2e2; --bad-br: #fca5a5;
+    --warn-fg: #713f12; --warn-bg: #fef3c7; --warn-br: #fcd34d;
+    --mono: ui-monospace, "Cascadia Code", "SF Mono", Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+  header {
+    background: var(--panel); border-bottom: 1px solid var(--border);
+    padding: 14px 20px; display: flex; align-items: center; gap: 16px;
+    flex-wrap: wrap; position: sticky; top: 0; z-index: 10;
+  }
+  header h1 { font-size: 16px; margin: 0; font-weight: 650; }
+  header .sub { color: var(--muted); font-size: 12.5px; }
+  #health { margin-left: auto; font-size: 12.5px; color: var(--muted); font-family: var(--mono); }
+  .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #9ca3af; margin-right: 6px; }
+  .dot.up { background: #22c55e; } .dot.down { background: #ef4444; }
+
+  main { display: grid; grid-template-columns: minmax(420px, 44%) 1fr; gap: 16px; padding: 16px 20px 40px; align-items: start; }
+  @media (max-width: 1150px) { main { grid-template-columns: 1fr; } }
+
+  .panel { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; margin-bottom: 16px; }
+  .panel > h2 {
+    font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted);
+    margin: 0; padding: 12px 16px; border-bottom: 1px solid var(--border); font-weight: 650;
+  }
+  .panel .body { padding: 16px; }
+
+  button {
+    font: inherit; font-size: 13px; padding: 7px 13px; border-radius: 7px; cursor: pointer;
+    border: 1px solid var(--border); background: var(--panel); color: var(--text);
+  }
+  button:hover { background: #f0f2f5; }
+  button.primary { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+  button.primary:hover { background: var(--accent-dark); }
+  button.tiny { padding: 3px 9px; font-size: 12px; }
+  button:disabled { opacity: .55; cursor: default; }
+
+  .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .scenarios { display: flex; gap: 6px; flex-wrap: wrap; }
+
+  label.f { display: block; font-size: 11.5px; font-weight: 600; color: var(--muted); margin-bottom: 4px; text-transform: uppercase; letter-spacing: .04em; }
+  input[type=text], input[type=number], input[type=date], textarea, select {
+    font: inherit; width: 100%; padding: 7px 9px; border: 1px solid var(--border);
+    border-radius: 6px; background: #fff; color: var(--text);
+  }
+  textarea { font-family: var(--mono); font-size: 12.5px; line-height: 1.55; resize: vertical; min-height: 130px; }
+  input:focus, textarea:focus, select:focus { outline: 2px solid #bfdbfe; outline-offset: -1px; border-color: var(--accent); }
+  .grid4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+  .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  @media (max-width: 620px) { .grid4, .grid3 { grid-template-columns: 1fr 1fr; } }
+
+  .doc { border: 1px solid var(--border); border-radius: 8px; padding: 12px; margin-bottom: 10px; background: #fcfcfd; }
+  .doc .hd { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+  .doc .hd .idx { font-family: var(--mono); font-size: 11.5px; color: var(--muted); }
+  .doc .hd .sp { margin-left: auto; }
+
+  .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(215px, 1fr)); gap: 10px; }
+  .card { border: 1px solid var(--border); border-radius: 8px; padding: 11px 12px; background: #fcfcfd; }
+  .card .k { font-family: var(--mono); font-size: 11.5px; color: var(--muted); margin-bottom: 6px; word-break: break-all; }
+  .card .v { font-size: 17px; font-weight: 660; }
+
+  .badge { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 12px; font-weight: 650; border: 1px solid; }
+  .b-ok  { color: var(--ok-fg);  background: var(--ok-bg);  border-color: var(--ok-br); }
+  .b-no  { color: var(--no-fg);  background: var(--no-bg);  border-color: var(--no-br); }
+  .b-bad { color: var(--bad-fg); background: var(--bad-bg); border-color: var(--bad-br); }
+  .b-warn{ color: var(--warn-fg);background: var(--warn-bg);border-color: var(--warn-br); }
+
+  table.checks { width: 100%; border-collapse: collapse; font-size: 13px; }
+  table.checks td { padding: 7px 8px; border-bottom: 1px solid #eef0f3; vertical-align: top; }
+  table.checks tr:last-child td { border-bottom: none; }
+  table.checks td.st { width: 74px; }
+  table.checks td.ex { color: var(--muted); font-family: var(--mono); font-size: 12px; white-space: nowrap; text-align: right; }
+
+  ul.sources { list-style: none; margin: 0; padding: 0; }
+  ul.sources li { border-left: 3px solid var(--accent); padding: 8px 0 8px 12px; margin-bottom: 10px; background: #fafbfc; border-radius: 0 6px 6px 0; }
+  ul.sources .fact { font-weight: 560; }
+  ul.sources .meta { font-family: var(--mono); font-size: 11.5px; color: var(--muted); margin-top: 3px; }
+
+  .trace { border-left: 3px solid var(--no-br); padding: 8px 0 8px 12px; margin-bottom: 9px; background: #fafbfc; border-radius: 0 6px 6px 0; }
+  .trace.acc { border-left-color: #22c55e; }
+  .trace.rej { border-left-color: #f87171; }
+  .trace .d { font-weight: 550; }
+  .trace .f { font-family: var(--mono); font-size: 11.5px; color: var(--muted); }
+  .trace .q { font-family: var(--mono); font-size: 12px; color: #374151; background: #f1f3f6; border-radius: 5px; padding: 5px 8px; margin-top: 6px; white-space: pre-wrap; word-break: break-word; }
+
+  pre.json { font-family: var(--mono); font-size: 12.5px; background: #1e2430; color: #e5e9f0; padding: 14px; border-radius: 8px; overflow-x: auto; margin: 0; }
+  .empty { color: var(--muted); font-style: italic; }
+  .err { border: 1px solid var(--bad-br); background: var(--bad-bg); color: var(--bad-fg); border-radius: 8px; padding: 12px; }
+  .err .code { font-family: var(--mono); font-weight: 700; }
+  .note { font-size: 12.5px; color: var(--muted); margin: 0 0 12px; }
+  details summary { cursor: pointer; font-size: 12.5px; color: var(--muted); user-select: none; }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>Clinical Evidence Agent — QC Console</h1>
+    <div class="sub">clinical records &rarr; ClinicalEvidence JSON. Deterministic rules, no LLM.</div>
+  </div>
+  <div id="health"><span class="dot"></span>checking&hellip;</div>
+</header>
+
+<main>
+  <!-- ------------------------------ INPUT ------------------------------ -->
+  <div>
+    <div class="panel">
+      <h2>Test case</h2>
+      <div class="body">
+        <p class="note">Load a scenario, edit anything, then run. Each scenario carries its own expected result so you can see pass/fail immediately.</p>
+        <div class="scenarios" id="scenarios"></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>Request</h2>
+      <div class="body">
+        <div class="grid4" style="margin-bottom:14px">
+          <div><label class="f" for="patient_id">patient_id</label><input type="text" id="patient_id" value="P001" /></div>
+          <div><label class="f" for="procedure">procedure</label><input type="text" id="procedure" value="ACL_RECONSTRUCTION" /></div>
+          <div><label class="f" for="as_of_date">as_of_date</label><input type="text" id="as_of_date" placeholder="YYYY-MM-DD" /></div>
+          <div><label class="f" for="recency">recency (days)</label><input type="number" id="recency" placeholder="90" min="1" /></div>
+        </div>
+
+        <div class="row" style="margin-bottom:10px">
+          <strong style="font-size:13px">Documents</strong>
+          <span id="doccount" class="sub" style="color:var(--muted);font-size:12.5px"></span>
+          <span class="sp" style="margin-left:auto"></span>
+          <button class="tiny" id="adddoc">+ Add document</button>
+        </div>
+        <div id="docs"></div>
+
+        <div class="row" style="margin-top:14px">
+          <button class="primary" id="run">Run extraction</button>
+          <button id="clear">Clear all</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ------------------------------ OUTPUT ----------------------------- -->
+  <div>
+    <div class="panel">
+      <h2>Extracted evidence</h2>
+      <div class="body" id="evidence"><div class="empty">Run a case to see results.</div></div>
+    </div>
+
+    <div class="panel">
+      <h2>Expected vs actual</h2>
+      <div class="body" id="checks"><div class="empty">No scenario run yet.</div></div>
+    </div>
+
+    <div class="panel">
+      <h2>Source citations</h2>
+      <div class="body" id="sources"><div class="empty">&mdash;</div></div>
+    </div>
+
+    <div class="panel">
+      <h2>Decision trace &mdash; why the agent decided this</h2>
+      <div class="body" id="trace"><div class="empty">&mdash;</div></div>
+    </div>
+
+    <div class="panel">
+      <h2>Contract response (ClinicalEvidence)</h2>
+      <div class="body" id="raw"><div class="empty">&mdash;</div></div>
+    </div>
+  </div>
+</main>
+
+<script>
+"use strict";
+
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) =>
+  ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+const EVIDENCE_FIELDS = [
+  "mri_confirmed",
+  "physical_therapy_weeks",
+  "persistent_instability",
+  "nsaid_trial",
+  "recent_physical_exam",
+];
+
+/* ------------------------------------------------------------------ *
+ * Scenarios. Each carries the result we expect, so the console can
+ * grade itself rather than making you eyeball the JSON.
+ * ------------------------------------------------------------------ */
+const SCENARIOS = [
+  {
+    id: "shared",
+    label: "Shared ACL case",
+    remote: true,
+    expected: {
+      diagnosis: "ACL tear",
+      mri_confirmed: true,
+      physical_therapy_weeks: 8,
+      persistent_instability: true,
+      nsaid_trial: true,
+      recent_physical_exam: false,
+    },
+    notes: "The PRD demo case. Exam exists but is 166 days old, so it is not recent.",
+  },
+  {
+    id: "negated",
+    label: "Negated MRI",
+    expected: { diagnosis: null, mri_confirmed: false },
+    case: {
+      patient_id: "P002", procedure: "ACL_RECONSTRUCTION",
+      documents: [{
+        source_id: "mri_02", source_label: "MRI Report", document_date: "2026-09-01",
+        text: "MRI LEFT KNEE\n\nFINDINGS:\nThe anterior cruciate ligament is intact.\nNo ACL tear is identified.\n\nIMPRESSION:\nNo acute ligamentous injury.",
+      }],
+    },
+    notes: "A negative study must not be read as a confirmed tear.",
+  },
+  {
+    id: "planned",
+    label: "Planned PT only",
+    expected: { physical_therapy_weeks: 0, nsaid_trial: false },
+    case: {
+      patient_id: "P003", procedure: "ACL_RECONSTRUCTION",
+      documents: [{
+        source_id: "plan_01", source_label: "Clinic Note", document_date: "2026-09-01",
+        text: "Plan:\nRecommend a 12 week course of physical therapy.\nWill prescribe naproxen 500 mg twice daily.",
+      }],
+    },
+    notes: "Planned care is not completed care. Both fields must stay empty.",
+  },
+  {
+    id: "allergy",
+    label: "NSAID allergy",
+    expected: { nsaid_trial: false },
+    case: {
+      patient_id: "P004", procedure: "ACL_RECONSTRUCTION",
+      documents: [{
+        source_id: "med_02", source_label: "Medication History", document_date: "2026-09-01",
+        text: "Allergies: ibuprofen, causing urticaria.\nNSAIDs are contraindicated for this patient.",
+      }],
+    },
+    notes: "An allergy is not a therapeutic trial.",
+  },
+  {
+    id: "failed",
+    label: "Failed NSAID trial",
+    expected: { nsaid_trial: true },
+    case: {
+      patient_id: "P005", procedure: "ACL_RECONSTRUCTION",
+      documents: [{
+        source_id: "med_03", source_label: "Medication History", document_date: "2026-09-01",
+        text: "Naproxen was taken daily for six weeks with no relief of symptoms.\nThe patient failed NSAID therapy.",
+      }],
+    },
+    notes: "Failing a drug still means it was tried. The negation must not swallow it.",
+  },
+  {
+    id: "recent_exam",
+    label: "Recent exam",
+    expected: { recent_physical_exam: true },
+    case: {
+      patient_id: "P006", procedure: "ACL_RECONSTRUCTION", as_of_date: "2026-09-15",
+      documents: [{
+        source_id: "ortho_02", source_label: "Orthopedic Office Note", document_date: "2026-09-01",
+        text: "ORTHOPEDIC OFFICE NOTE\nPhysical Examination:\nLeft knee with a small effusion. Lachman test positive. Anterior drawer positive.",
+      }],
+    },
+    notes: "14 days old, inside the 90-day window.",
+  },
+  {
+    id: "undated",
+    label: "Undated exam",
+    expected: { recent_physical_exam: false },
+    case: {
+      patient_id: "P007", procedure: "ACL_RECONSTRUCTION", as_of_date: "2026-09-15",
+      documents: [{
+        source_id: "ortho_03", source_label: "Orthopedic Office Note",
+        text: "ORTHOPEDIC OFFICE NOTE\nPhysical Examination:\nLachman test positive. Anterior drawer positive.",
+      }],
+    },
+    notes: "No date means recency cannot be established, so it stays false.",
+  },
+  {
+    id: "unrelated",
+    label: "Unrelated record",
+    expected: {
+      diagnosis: null, mri_confirmed: false, physical_therapy_weeks: 0,
+      persistent_instability: false, nsaid_trial: false, recent_physical_exam: false,
+    },
+    case: {
+      patient_id: "P008", procedure: "ACL_RECONSTRUCTION",
+      documents: [{
+        source_id: "wellness_01", source_label: "Annual Wellness Visit", document_date: "2026-09-01",
+        text: "Annual wellness visit. Blood pressure 118/76. No complaints today.",
+      }],
+    },
+    notes: "Nothing relevant. Everything must come back empty, with no invented facts.",
+  },
+];
+
+let activeScenario = null;
+
+/* ----------------------------- document editor ---------------------------- */
+
+function docCard(doc, index) {
+  const el = document.createElement("div");
+  el.className = "doc";
+  el.innerHTML = `
+    <div class="hd">
+      <span class="idx">document ${index + 1}</span>
+      <span class="sp"></span>
+      <button class="tiny remove" type="button">Remove</button>
+    </div>
+    <div class="grid3" style="margin-bottom:10px">
+      <div><label class="f">source_id</label><input type="text" class="d-id" /></div>
+      <div><label class="f">source_label</label><input type="text" class="d-label" /></div>
+      <div><label class="f">document_date</label><input type="text" class="d-date" placeholder="YYYY-MM-DD" /></div>
+    </div>
+    <label class="f">text</label>
+    <textarea class="d-text" spellcheck="false"></textarea>`;
+  el.querySelector(".d-id").value = doc.source_id || "";
+  el.querySelector(".d-label").value = doc.source_label || "";
+  el.querySelector(".d-date").value = doc.document_date || "";
+  el.querySelector(".d-text").value = doc.text || "";
+  el.querySelector(".remove").addEventListener("click", () => {
+    el.remove();
+    renumber();
+  });
+  return el;
+}
+
+function renumber() {
+  const cards = [...$("docs").children];
+  cards.forEach((card, i) => {
+    card.querySelector(".idx").textContent = `document ${i + 1}`;
+  });
+  $("doccount").textContent = cards.length === 1 ? "1 document" : `${cards.length} documents`;
+}
+
+function setCase(payload) {
+  $("patient_id").value = payload.patient_id || "";
+  $("procedure").value = payload.procedure || "";
+  $("as_of_date").value = payload.as_of_date || "";
+  $("recency").value = payload.recency_window_days ?? "";
+  $("docs").replaceChildren(...(payload.documents || []).map(docCard));
+  renumber();
+}
+
+function readCase() {
+  const payload = {
+    patient_id: $("patient_id").value.trim(),
+    procedure: $("procedure").value.trim(),
+    documents: [...$("docs").children].map((card) => {
+      const doc = {
+        source_id: card.querySelector(".d-id").value.trim(),
+        source_label: card.querySelector(".d-label").value.trim(),
+        text: card.querySelector(".d-text").value,
+      };
+      const date = card.querySelector(".d-date").value.trim();
+      if (date) doc.document_date = date;
+      return doc;
+    }),
+  };
+  const asOf = $("as_of_date").value.trim();
+  if (asOf) payload.as_of_date = asOf;
+  const recency = $("recency").value.trim();
+  if (recency) payload.recency_window_days = Number(recency);
+  return payload;
+}
+
+/* -------------------------------- rendering ------------------------------- */
+
+function valueBadge(value) {
+  if (value === true) return '<span class="badge b-ok">true</span>';
+  if (value === false) return '<span class="badge b-no">false</span>';
+  if (value === null) return '<span class="badge b-no">null</span>';
+  if (value === 0) return '<span class="badge b-no">0</span>';
+  return `<span class="badge b-ok">${esc(value)}</span>`;
+}
+
+function renderEvidence(evidence) {
+  const cards = [
+    { k: "diagnosis", v: evidence.diagnosis },
+    ...EVIDENCE_FIELDS.map((k) => ({ k, v: evidence.evidence[k] })),
+  ];
+  $("evidence").innerHTML = `<div class="cards">${cards
+    .map((c) => `<div class="card"><div class="k">${esc(c.k)}</div><div class="v">${valueBadge(c.v)}</div></div>`)
+    .join("")}</div>`;
+}
+
+function renderChecks(evidence, deterministic) {
+  const rows = [];
+
+  if (activeScenario && activeScenario.expected) {
+    for (const [key, want] of Object.entries(activeScenario.expected)) {
+      const got = key === "diagnosis" ? evidence.diagnosis : evidence.evidence[key];
+      const pass = got === want;
+      rows.push({
+        pass,
+        label: key,
+        detail: pass ? "" : `got ${JSON.stringify(got)}`,
+        expected: JSON.stringify(want),
+      });
+    }
+  }
+
+  rows.push({
+    pass: deterministic,
+    label: "deterministic",
+    detail: deterministic ? "" : "two identical requests returned different bytes",
+    expected: "stable",
+  });
+
+  const cited = new Set(evidence.sources.map((s) => s.source_id));
+  const supplied = new Set([...$("docs").children].map((c) => c.querySelector(".d-id").value.trim()));
+  const orphans = [...cited].filter((id) => !supplied.has(id));
+  rows.push({
+    pass: orphans.length === 0,
+    label: "citations resolve to supplied documents",
+    detail: orphans.length ? `unknown: ${orphans.join(", ")}` : "",
+    expected: "all",
+  });
+
+  const passed = rows.filter((r) => r.pass).length;
+  const summary = passed === rows.length
+    ? `<span class="badge b-ok">${passed}/${rows.length} passing</span>`
+    : `<span class="badge b-bad">${rows.length - passed} failing</span>`;
+
+  $("checks").innerHTML =
+    `<div style="margin-bottom:10px">${summary}${
+      activeScenario && activeScenario.notes
+        ? ` <span style="color:var(--muted);font-size:12.5px">${esc(activeScenario.notes)}</span>`
+        : ""
+    }</div>` +
+    `<table class="checks">${rows
+      .map(
+        (r) => `<tr>
+          <td class="st"><span class="badge ${r.pass ? "b-ok" : "b-bad"}">${r.pass ? "pass" : "FAIL"}</span></td>
+          <td><span style="font-family:var(--mono);font-size:12.5px">${esc(r.label)}</span>${
+            r.detail ? `<div style="color:var(--bad-fg);font-size:12px">${esc(r.detail)}</div>` : ""
+          }</td>
+          <td class="ex">${esc(r.expected)}</td>
+        </tr>`
+      )
+      .join("")}</table>`;
+}
+
+function renderSources(sources) {
+  if (!sources.length) {
+    $("sources").innerHTML = '<div class="empty">No citations. Nothing was extracted.</div>';
+    return;
+  }
+  $("sources").innerHTML = `<ul class="sources">${sources
+    .map(
+      (s) => `<li>
+        <div class="fact">${esc(s.fact)}</div>
+        <div class="meta">${esc(s.source_label)} &middot; ${esc(s.source_id)} &middot; ${esc(s.location)}</div>
+      </li>`
+    )
+    .join("")}</ul>`;
+}
+
+function renderTrace(trace) {
+  if (!trace.length) {
+    $("trace").innerHTML = '<div class="empty">&mdash;</div>';
+    return;
+  }
+  const accepted = trace.filter((t) => t.accepted).length;
+  const rejected = trace.filter((t) => /rejected|not reported|no /i.test(t.decision)).length;
+
+  const groups = new Map();
+  for (const entry of trace) {
+    if (!groups.has(entry.field)) groups.set(entry.field, []);
+    groups.get(entry.field).push(entry);
+  }
+
+  let html = `<p class="note">${accepted} accepted, ${rejected} rejected. Rejections are where the guards against inventing evidence did their job.</p>`;
+  for (const [field, entries] of groups) {
+    html += `<div style="margin-bottom:14px"><div class="f" style="font-family:var(--mono);font-size:11.5px;color:var(--muted);margin-bottom:6px">${esc(field)}</div>`;
+    html += entries
+      .map((e) => {
+        const rejected = /rejected|not reported/i.test(e.decision);
+        const cls = e.accepted ? "acc" : rejected ? "rej" : "";
+        const where = e.source_id ? `${e.source_id}${e.page ? ` &middot; page ${e.page}` : ""}` : "";
+        return `<div class="trace ${cls}">
+          <div class="d">${esc(e.decision)}</div>
+          ${where ? `<div class="f">${where}</div>` : ""}
+          ${e.matched_text ? `<div class="q">${esc(e.matched_text)}</div>` : ""}
+        </div>`;
+      })
+      .join("");
+    html += "</div>";
+  }
+  $("trace").innerHTML = html;
+}
+
+function renderError(status, body) {
+  const err = body && body.error;
+  $("evidence").innerHTML = `<div class="err">
+      <div><span class="code">${esc(err ? err.code : "HTTP " + status)}</span> &middot; HTTP ${status}</div>
+      <div style="margin-top:6px">${esc(err ? err.message : JSON.stringify(body))}</div>
+      ${err && err.details && err.details.length
+        ? `<ul style="margin:8px 0 0 18px;padding:0">${err.details
+            .map((d) => `<li><code>${esc(d.path)}</code>: ${esc(d.message)}</li>`)
+            .join("")}</ul>`
+        : ""}
+    </div>`;
+  $("checks").innerHTML = '<div class="empty">Request failed.</div>';
+  $("sources").innerHTML = '<div class="empty">&mdash;</div>';
+  $("trace").innerHTML = '<div class="empty">&mdash;</div>';
+  $("raw").innerHTML = `<pre class="json">${esc(JSON.stringify(body, null, 2))}</pre>`;
+}
+
+/* --------------------------------- actions -------------------------------- */
+
+async function run() {
+  const payload = readCase();
+  $("run").disabled = true;
+  $("run").textContent = "Running…";
+  try {
+    const response = await fetch("/clinical/extract/debug", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    const body = await response.json();
+
+    if (!response.ok) {
+      renderError(response.status, body);
+      return;
+    }
+
+    // Verify the determinism guarantee by asking twice and comparing bytes.
+    const second = await fetch("/clinical/extract", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    const secondBody = await second.json();
+    const deterministic =
+      JSON.stringify(secondBody) === JSON.stringify(body.evidence);
+
+    renderEvidence(body.evidence);
+    renderChecks(body.evidence, deterministic);
+    renderSources(body.evidence.sources);
+    renderTrace(body.trace);
+    $("raw").innerHTML = `<pre class="json">${esc(JSON.stringify(body.evidence, null, 2))}</pre>`;
+  } catch (error) {
+    renderError(0, { error: { code: "NETWORK", message: String(error), details: [] } });
+  } finally {
+    $("run").disabled = false;
+    $("run").textContent = "Run extraction";
+  }
+}
+
+async function loadScenario(scenario) {
+  activeScenario = scenario;
+  for (const button of $("scenarios").children) {
+    button.classList.toggle("primary", button.dataset.id === scenario.id);
+  }
+  if (scenario.remote) {
+    const response = await fetch("/ui/sample-case");
+    setCase(await response.json());
+  } else {
+    setCase(JSON.parse(JSON.stringify(scenario.case)));
+  }
+  await run();
+}
+
+/* ---------------------------------- boot ---------------------------------- */
+
+$("scenarios").replaceChildren(
+  ...SCENARIOS.map((scenario) => {
+    const button = document.createElement("button");
+    button.textContent = scenario.label;
+    button.dataset.id = scenario.id;
+    button.addEventListener("click", () => loadScenario(scenario));
+    return button;
+  })
+);
+
+$("adddoc").addEventListener("click", () => {
+  $("docs").append(docCard({ source_id: "", source_label: "", text: "" }, $("docs").children.length));
+  renumber();
+});
+
+$("clear").addEventListener("click", () => {
+  activeScenario = null;
+  setCase({ patient_id: "P001", procedure: "ACL_RECONSTRUCTION", documents: [{ source_id: "doc_01", source_label: "Clinical Note", text: "" }] });
+  for (const button of $("scenarios").children) button.classList.remove("primary");
+});
+
+$("run").addEventListener("click", run);
+
+fetch("/health")
+  .then((r) => r.json())
+  .then((h) => {
+    $("health").innerHTML = `<span class="dot up"></span>${esc(h.service)} v${esc(h.version)} &middot; ${esc(h.supported_procedures.join(", "))}`;
+  })
+  .catch(() => {
+    $("health").innerHTML = '<span class="dot down"></span>service unreachable';
+  });
+
+loadScenario(SCENARIOS[0]);
+</script>
+</body>
+</html>
