@@ -393,3 +393,34 @@ export function DemoLifecycleCard({
     </section>
   );
 }
+
+
+export function AuditTimeline({ result }: { result: AuthorizationResult }) {
+  const instability = result.explanations.find((item) => item.criterion_id === "FUNCTIONAL_INSTABILITY");
+  const pt = result.explanations.find((item) => item.criterion_id === "PT_DURATION");
+  const events = [
+    "CASE_CREATED — synthetic ACL case opened",
+    "POLICY_LOADED — ExampleHealth ACL policy v2026.09",
+    ...(instability?.result === "SATISFIED" ? ["HUMAN_EVIDENCE_CONFIRMATION — positive Lachman finding confirmed"] : []),
+    ...(result.identity_status.provider_agent_verified ? ["AGENT_IDENTITY_VERIFIED — PT agent cleared through simulated ANS"] : []),
+    ...(pt?.result === "SATISFIED" ? ["EVIDENCE_FOUND — verified PT record added", "CASE_READY — all seven requirements satisfied"] : []),
+  ];
+  return (
+    <section className="card criteria-card">
+      <div className="section-heading criteria-heading">
+        <div>
+          <h2>Audit timeline</h2>
+          <p className="muted small">Every state change is attributable to a human or verified agent action.</p>
+        </div>
+      </div>
+      <ol className="criteria-list">
+        {events.map((event) => (
+          <li className="criterion-row" key={event}>
+            <span className="criterion-icon satisfied"><Check size={18} /></span>
+            <span className="criterion-description"><strong>{event}</strong></span>
+          </li>
+        ))}
+      </ol>
+    </section>
+  );
+}

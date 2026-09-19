@@ -20,6 +20,7 @@ import {
 import { CaseSetup } from "./components/CaseSetup";
 import { ProcessingStepper } from "./components/ProcessingStepper";
 import {
+  AuditTimeline,
   CostEstimateCard,
   CriteriaChecklist,
   DemoLifecycleCard,
@@ -412,12 +413,13 @@ export default function App() {
               </div>
               <DemoLifecycleCard
                 result={result}
-                enabled={!isMockMode}
+                enabled
                 busy={lifecycleBusy}
                 onConfirm={() => runLifecycleAction("confirm")}
                 onVerify={() => runLifecycleAction("verify")}
                 onAddEvidence={() => runLifecycleAction("evidence")}
               />
+              <AuditTimeline result={result} />
               <div className="result-detail-grid">
                 <CriteriaChecklist
                   result={result}

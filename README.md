@@ -11,10 +11,20 @@ Results are framed as **authorization readiness / criteria match**, never as a p
 | [Payer Policy Agent](services/policy_agent/README.md) | Implemented | Python (stdlib) | 8001 | `PolicyRequirements` |
 | [Clinical Evidence Agent](services/clinical_agent/README.md) | Implemented | Python / FastAPI | 8002 | `ClinicalEvidence` |
 | HCP Frontend (`charan's work/`) | In progress | React / Vite | 5173 | Talks only to the Orchestrator |
-| Orchestrator | Not started | — | 8000 | `AuthorizationResult` |
+| Orchestrator | Implemented synthetic demo | Python / FastAPI | 8000 | `AuthorizationResult` |
 | Identity / ANS | Not started | — | — | `identity_status` |
 
 ## Run the modules
+
+### Orchestrator
+
+```sh
+cd services/orchestrator
+pip install -r requirements.txt
+uvicorn app:app --port 8000
+```
+
+The synthetic demo begins **BLOCKED at 5/7**: 35 of 42 documented therapy days and an instability finding awaiting human confirmation. It becomes **READY_FOR_REVIEW at 7/7** only after human confirmation and verified simulated PT evidence. This is deterministic demo logic, not a payer decision.
 
 ### Payer Policy Agent
 
@@ -85,4 +95,4 @@ Expected output fixtures:
 9. Every module must start independently.
 10. Merge often, and test the shared ACL case before adding more cases.
 
-The frontend depends only on the Orchestrator. The Orchestrator is the only service that combines outputs from the other modules.
+The frontend depends only on the Orchestrator. In the current hackathon build, the Orchestrator owns a deterministic synthetic case state; direct live calls to the separate agents remain the next integration milestone.

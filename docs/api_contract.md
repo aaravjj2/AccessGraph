@@ -5,13 +5,32 @@ modules: renaming anything requires team approval.
 
 | Service | Owner module | Port | Status |
 | --- | --- | --- | --- |
-| Orchestrator | `services/orchestrator` | 8000 | Not started |
+| Orchestrator | `services/orchestrator` | 8000 | Implemented synthetic demo |
 | Policy Agent | `services/policy_agent` | 8001 | Implemented |
 | Clinical Evidence Agent | `services/clinical_agent` | 8002 | Implemented |
 | Identity / ANS | `services/identity` | — | Not started |
 
 The frontend depends only on the Orchestrator. The Orchestrator is the only
 service that combines outputs from the other modules.
+
+## Orchestrator
+
+```http
+POST /analyze-case
+Content-Type: application/json
+```
+
+Request contains exactly `patient_id`, `procedure`, and `insurer`. The response is the frontend's canonical `AuthorizationResult`. The synthetic ACL case exposes these additional state-transition routes:
+
+| Method | Path | Guard |
+| --- | --- | --- |
+| POST | `/cases/P001/confirm-instability` | Human confirmation |
+| POST | `/agents/pt-agent/verify` | Simulated ANS verification |
+| POST | `/cases/P001/external-pt-evidence` | Rejects unverified agent evidence with `403 UNVERIFIED_AGENT` |
+| GET | `/cases/P001/audit` | Synthetic audit trail |
+| POST | `/cases/P001/reset` | Demo reset |
+
+Errors are JSON objects with `code` and `message`. The service permits only the local HCP frontend origins `http://127.0.0.1:5173` and `http://localhost:5173` in this demo.
 
 ## Policy Agent
 
