@@ -35,7 +35,7 @@ test("ACL case from setup through source-backed explanation and next action", as
     .click();
   const drawer = page.getByRole("dialog");
   await expect(
-    drawer.getByText("PT Progress Note, page 2", { exact: true }),
+    drawer.getByText("PT Encounter Timeline, synthetic", { exact: true }),
   ).toBeVisible();
   await expect(
     drawer.getByText("ACL Policy 2026.09, Section 4.3", { exact: true }),
