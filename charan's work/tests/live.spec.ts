@@ -19,7 +19,7 @@ test("one configuration change uses the real HTTP adapter and canonical payload"
     .getByRole("button", { name: "Analyze Authorization Readiness" })
     .click();
   await expect(
-    page.getByRole("img", { name: "75% authorization readiness" }),
+    page.getByRole("img", { name: "71% authorization readiness" }),
   ).toBeVisible();
   expect(calls).toEqual([request]);
 });
@@ -70,7 +70,7 @@ for (const scenario of [
     );
     await page.getByRole("button", { name: "Try again" }).click();
     await expect(
-      page.getByRole("img", { name: "75% authorization readiness" }),
+      page.getByRole("img", { name: "71% authorization readiness" }),
     ).toBeVisible();
   });
 }

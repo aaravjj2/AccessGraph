@@ -3,6 +3,10 @@ import type { AuthorizationResult, Explanation } from "./contracts";
 const criterionLabels: Record<string, string> = {
   MRI_CONFIRMED: "MRI confirmation",
   PT_WEEKS: "Conservative treatment",
+  PT_DURATION: "Conservative treatment duration",
+  PERSISTENT_SYMPTOMS: "Persistent symptoms",
+  FAILED_CONSERVATIVE_TREATMENT: "Failed conservative treatment",
+  DIAGNOSIS_CODING: "Diagnosis coding",
   PERSISTENT_INSTABILITY: "Functional instability",
   RECENT_PHYSICAL_EXAM: "Recent physical exam",
 };
@@ -17,6 +21,7 @@ export function statusLabel(status: string) {
     (
       {
         NEEDS_MORE_EVIDENCE: "Needs more evidence",
+        BLOCKED: "Blocked",
         READY: "Ready for review",
         READY_FOR_SUBMISSION: "Ready for submission",
         PARTIAL_ANALYSIS: "Partial analysis",

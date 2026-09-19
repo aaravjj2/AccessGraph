@@ -11,9 +11,9 @@ describe("canonical Orchestrator boundary", () => {
     expect(first).toEqual(fixture);
     expect(second).toEqual(first);
     first.missing_requirements.length = 0;
-    expect(second.missing_requirements).toHaveLength(1);
-    expect(second.authorization_readiness).toBe(0.75);
-    expect(second.status).toBe("NEEDS_MORE_EVIDENCE");
+    expect(second.missing_requirements).toHaveLength(2);
+    expect(second.authorization_readiness).toBeCloseTo(0.7143);
+    expect(second.status).toBe("BLOCKED");
   });
 
   it("calls only POST /analyze-case with exactly the three canonical fields", async () => {
@@ -42,7 +42,7 @@ describe("canonical Orchestrator boundary", () => {
     ["wrong patient", { ...fixture, patient_id: "P999" }],
     ["wrong procedure", { ...fixture, procedure: "OTHER" }],
     ["unbounded readiness", { ...fixture, authorization_readiness: 1.5 }],
-    ["inconsistent counts", { ...fixture, requirements_met: 5 }],
+    ["inconsistent counts", { ...fixture, requirements_met: 8 }],
     [
       "reversed cost",
       {
@@ -138,7 +138,7 @@ describe("explanations without backend coupling", () => {
       { ...fixture, explanations: [fixture.explanations[1]] },
       request,
     );
-    expect(criteriaFor(partial)).toHaveLength(2);
+    expect(criteriaFor(partial)).toHaveLength(3);
     expect(analysisNotice(partial)?.title).toContain("unavailable");
   });
   it("never invents sources absent from the response", () => {
