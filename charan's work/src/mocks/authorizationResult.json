@@ -1,51 +1,23 @@
 {
   "patient_id": "P001",
   "procedure": "ACL_RECONSTRUCTION",
-  "status": "NEEDS_MORE_EVIDENCE",
-  "authorization_readiness": 0.75,
-  "requirements_met": 3,
-  "requirements_total": 4,
+  "status": "BLOCKED",
+  "authorization_readiness": 0.7143,
+  "requirements_met": 5,
+  "requirements_total": 7,
   "missing_requirements": [
-    {
-      "criterion_id": "RECENT_PHYSICAL_EXAM",
-      "description": "Recent qualifying physical examination not found",
-      "recommended_action": "Upload the most recent orthopedic physical exam note"
-    }
+    {"criterion_id": "FUNCTIONAL_INSTABILITY", "description": "Potential instability evidence requires clinician confirmation", "recommended_action": "Confirm the positive Lachman finding"},
+    {"criterion_id": "PT_DURATION", "description": "Conservative therapy is 7 documented days short", "recommended_action": "Verify the PT agent and add the missing PT documentation"}
   ],
-  "estimated_patient_cost": {
-    "low": 1200,
-    "high": 1700,
-    "currency": "USD",
-    "basis": "Synthetic plan estimate for demo purposes"
-  },
-  "identity_status": {
-    "provider_agent_verified": true,
-    "insurer_agent_verified": true
-  },
+  "estimated_patient_cost": {"low": 1450, "high": 1900, "currency": "USD", "basis": "Synthetic deductible and coinsurance estimate"},
+  "identity_status": {"provider_agent_verified": false, "insurer_agent_verified": true},
   "explanations": [
-    {
-      "criterion_id": "MRI_CONFIRMED",
-      "patient_evidence": "MRI-confirmed ACL tear documented. [Source: MRI Report, page 1]",
-      "payer_requirement": "MRI confirmation of ACL tear is required. [Source: ACL Reconstruction Policy, Section 3.1]",
-      "result": "SATISFIED"
-    },
-    {
-      "criterion_id": "PT_WEEKS",
-      "patient_evidence": "8 weeks of physical therapy completed; NSAIDs attempted. [Source: PT Progress Note, page 2]",
-      "payer_requirement": "At least 6 weeks of conservative treatment. [Source: ACL Reconstruction Policy, Section 4.2]",
-      "result": "SATISFIED"
-    },
-    {
-      "criterion_id": "PERSISTENT_INSTABILITY",
-      "patient_evidence": "Persistent knee instability despite conservative treatment. [Source: Orthopedic Referral, page 3]",
-      "payer_requirement": "Persistent functional instability must be documented. [Source: ACL Reconstruction Policy, Section 4.3]",
-      "result": "SATISFIED"
-    },
-    {
-      "criterion_id": "RECENT_PHYSICAL_EXAM",
-      "patient_evidence": "No recent qualifying physical examination was found in the submitted clinical records.",
-      "payer_requirement": "A recent qualifying physical examination is required. [Source: ACL Reconstruction Policy, Section 4.4]",
-      "result": "MISSING"
-    }
+    {"criterion_id": "MRI_CONFIRMED", "patient_evidence": "MRI confirms complete ACL tear. [Source: MRI Report, page 1]", "payer_requirement": "MRI confirmation of ACL tear. [Source: ACL Policy 2026.09, Section 3.1]", "result": "SATISFIED"},
+    {"criterion_id": "PERSISTENT_SYMPTOMS", "patient_evidence": "Persistent giving-way symptoms documented. [Source: PT Progress Note, page 2]", "payer_requirement": "Persistent symptoms must be documented. [Source: ACL Policy 2026.09, Section 4.1]", "result": "SATISFIED"},
+    {"criterion_id": "FAILED_CONSERVATIVE_TREATMENT", "patient_evidence": "NSAID trial and supervised PT documented. [Source: Medication History, page 1]", "payer_requirement": "Failed conservative treatment is required. [Source: ACL Policy 2026.09, Section 4.2]", "result": "SATISFIED"},
+    {"criterion_id": "RECENT_PHYSICAL_EXAM", "patient_evidence": "Orthopedic exam is dated within the 90-day policy window. [Source: Orthopedic Note, page 1]", "payer_requirement": "Recent qualifying physical examination. [Source: ACL Policy 2026.09, Section 4.4]", "result": "SATISFIED"},
+    {"criterion_id": "DIAGNOSIS_CODING", "patient_evidence": "ACL tear diagnosis is present in the synthetic case. [Source: Orthopedic Note, Assessment]", "payer_requirement": "Relevant diagnosis coding is required. [Source: ACL Policy 2026.09, Section 5.1]", "result": "SATISFIED"},
+    {"criterion_id": "PT_DURATION", "patient_evidence": "35 documented days of conservative therapy; 42 required. [Source: PT Encounter Timeline, synthetic]", "payer_requirement": "At least 42 days of conservative therapy. [Source: ACL Policy 2026.09, Section 4.3]", "result": "UNSATISFIED"},
+    {"criterion_id": "FUNCTIONAL_INSTABILITY", "patient_evidence": "Positive Lachman test found; clinician confirmation required. [Source: Orthopedic Note, page 1]", "payer_requirement": "Functional instability must be documented. [Source: ACL Policy 2026.09, Section 3.2]", "result": "UNKNOWN"}
   ]
 }
