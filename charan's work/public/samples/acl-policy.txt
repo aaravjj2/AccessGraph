@@ -1,0 +1,12 @@
+ACCESSGRAPH — SYNTHETIC PAYER POLICY
+ExampleHealth PPO | ACL Reconstruction Policy | Version 2026-09
+Fictional policy for the shared hackathon case; not an actual insurer policy.
+
+Section 3.1 — MRI confirmation of ACL tear is required.
+Section 4.2 — At least 6 weeks of conservative treatment is required.
+Section 4.3 — Persistent functional instability must be documented.
+Section 4.4 — A recent qualifying physical examination is required.
+
+These criteria describe authorization readiness. Final coverage and authorization
+decisions remain with the insurer. This fixture does not define a specific exam
+recency window or guarantee authorization.

@@ -1,0 +1,15 @@
+ACCESSGRAPH — SYNTHETIC DEMO RECORDS
+Patient: Synthetic Patient A (P001)
+Requested procedure: ACL reconstruction
+All records below are fictional hackathon fixtures.
+
+PAGE 1 — MRI REPORT
+Findings: MRI confirms an ACL tear.
+
+PAGE 2 — PT PROGRESS NOTE
+Eight weeks of physical therapy have been completed.
+NSAIDs have been attempted.
+
+PAGE 3 — ORTHOPEDIC REFERRAL
+Persistent knee instability despite conservative treatment.
+No recent qualifying physical examination is included in this record bundle.

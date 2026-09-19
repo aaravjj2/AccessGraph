@@ -1,0 +1,51 @@
+{
+  "patient_id": "P001",
+  "procedure": "ACL_RECONSTRUCTION",
+  "status": "NEEDS_MORE_EVIDENCE",
+  "authorization_readiness": 0.75,
+  "requirements_met": 3,
+  "requirements_total": 4,
+  "missing_requirements": [
+    {
+      "criterion_id": "RECENT_PHYSICAL_EXAM",
+      "description": "Recent qualifying physical examination not found",
+      "recommended_action": "Upload the most recent orthopedic physical exam note"
+    }
+  ],
+  "estimated_patient_cost": {
+    "low": 1200,
+    "high": 1700,
+    "currency": "USD",
+    "basis": "Synthetic plan estimate for demo purposes"
+  },
+  "identity_status": {
+    "provider_agent_verified": true,
+    "insurer_agent_verified": true
+  },
+  "explanations": [
+    {
+      "criterion_id": "MRI_CONFIRMED",
+      "patient_evidence": "MRI-confirmed ACL tear documented. [Source: MRI Report, page 1]",
+      "payer_requirement": "MRI confirmation of ACL tear is required. [Source: ACL Reconstruction Policy, Section 3.1]",
+      "result": "SATISFIED"
+    },
+    {
+      "criterion_id": "PT_WEEKS",
+      "patient_evidence": "8 weeks of physical therapy completed; NSAIDs attempted. [Source: PT Progress Note, page 2]",
+      "payer_requirement": "At least 6 weeks of conservative treatment. [Source: ACL Reconstruction Policy, Section 4.2]",
+      "result": "SATISFIED"
+    },
+    {
+      "criterion_id": "PERSISTENT_INSTABILITY",
+      "patient_evidence": "Persistent knee instability despite conservative treatment. [Source: Orthopedic Referral, page 3]",
+      "payer_requirement": "Persistent functional instability must be documented. [Source: ACL Reconstruction Policy, Section 4.3]",
+      "result": "SATISFIED"
+    },
+    {
+      "criterion_id": "RECENT_PHYSICAL_EXAM",
+      "patient_evidence": "No recent qualifying physical examination was found in the submitted clinical records.",
+      "payer_requirement": "A recent qualifying physical examination is required. [Source: ACL Reconstruction Policy, Section 4.4]",
+      "result": "MISSING"
+    }
+  ]
+}
