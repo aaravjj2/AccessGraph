@@ -79,7 +79,13 @@ export async function analyzeCase(input: AnalyzeCaseRequest, options: {
       if (code === "NO_CLINICAL_EVIDENCE" || code === "NO_EVIDENCE") throw new AnalysisError("NO_CLINICAL_EVIDENCE");
       throw new AnalysisError("UNAVAILABLE");
     }
-    return parseAuthorizationResult(await response.json(), request);
+    let data: unknown;
+    try {
+      data = await response.json();
+    } catch {
+      throw new AnalysisError("MALFORMED_RESPONSE");
+    }
+    return parseAuthorizationResult(data, request);
   } catch (error) {
     if (options.signal?.aborted) throw error;
     if (timeout.aborted) throw new AnalysisError("TIMEOUT");
