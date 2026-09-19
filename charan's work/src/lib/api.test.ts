@@ -11,9 +11,9 @@ describe("canonical Orchestrator boundary", () => {
     expect(first).toEqual(fixture);
     expect(second).toEqual(first);
     first.missing_requirements.length = 0;
-    expect(second.missing_requirements).toHaveLength(1);
-    expect(second.authorization_readiness).toBe(0.75);
-    expect(second.status).toBe("NEEDS_MORE_EVIDENCE");
+    expect(second.missing_requirements).toHaveLength(2);
+    expect(second.authorization_readiness).toBeCloseTo(0.7143);
+    expect(second.status).toBe("BLOCKED");
   });
 
   it("calls only POST /analyze-case with exactly the three canonical fields", async () => {
