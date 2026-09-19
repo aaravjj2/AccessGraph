@@ -337,3 +337,59 @@ export function IdentityVerificationCard({
     </section>
   );
 }
+
+
+// The PRD demo is intentionally explicit: a human confirms ambiguous evidence,
+// then a verified external agent may add the missing record.
+export function DemoLifecycleCard({
+  result, enabled, busy, onConfirm, onVerify, onAddEvidence,
+}: {
+  result: AuthorizationResult;
+  enabled: boolean;
+  busy: boolean;
+  onConfirm: () => Promise<void>;
+  onVerify: () => Promise<void>;
+  onAddEvidence: () => Promise<void>;
+}) {
+  const instability = result.explanations.find((item) => item.criterion_id === "FUNCTIONAL_INSTABILITY");
+  const pt = result.explanations.find((item) => item.criterion_id === "PT_DURATION");
+  const ready = result.status === "READY_FOR_REVIEW";
+  const step = ready
+    ? "All requirements are met. A human must still review before submission."
+    : instability?.result !== "SATISFIED"
+      ? "Human review required: confirm the positive Lachman finding."
+      : !result.identity_status.provider_agent_verified
+        ? "Verify the PT agent before external evidence can enter the case."
+        : `Verified PT agent can add the remaining documented therapy days.`;
+  return (
+    <section className="card next-action" aria-live="polite">
+      <div className="section-heading">
+        <span className="eyebrow">DEMO STATE TRANSITION</span>
+        <span className="icon-box small-icon"><ShieldCheck size={18} /></span>
+      </div>
+      <h2>{ready ? "Case is ready for human review" : step}</h2>
+      <p className="muted">
+        {enabled
+          ? "Each step creates an audit event and re-evaluates the policy deterministically."
+          : "Set VITE_ORCHESTRATOR_URL to run the connected lifecycle. Mock mode remains read-only."}
+      </p>
+      {!ready ? (
+        <div className="next-action-bottom">
+          {instability?.result !== "SATISFIED" ? (
+            <button className="button primary" disabled={!enabled || busy} onClick={() => void onConfirm()}>
+              <Check size={16} /> Confirm instability finding
+            </button>
+          ) : !result.identity_status.provider_agent_verified ? (
+            <button className="button primary" disabled={!enabled || busy} onClick={() => void onVerify()}>
+              <ShieldCheck size={16} /> Verify PT agent
+            </button>
+          ) : (
+            <button className="button primary" disabled={!enabled || busy || pt?.result === "SATISFIED"} onClick={() => void onAddEvidence()}>
+              <FileText size={16} /> Add verified 14-day PT record
+            </button>
+          )}
+        </div>
+      ) : null}
+    </section>
+  );
+}
