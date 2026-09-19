@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import fixture from "../mocks/authorizationResult.json";
 import request from "../mocks/analyzeCaseRequest.json";
-import { AnalysisError, analyzeCase, parseAuthorizationResult } from "./api";
+import { addVerifiedPtEvidence, AnalysisError, analyzeCase, confirmInstability, parseAuthorizationResult, resetDemoState, verifyPtAgent } from "./api";
 import { analysisNotice, criteriaFor, narrative } from "./presentation";
 
 describe("canonical Orchestrator boundary", () => {
@@ -161,6 +161,36 @@ describe("explanations without backend coupling", () => {
       },
       request,
     );
+    expect(result.identity_status.provider_agent_verified).toBe(false);
+  });
+});
+
+
+describe("offline synthetic lifecycle", () => {
+  it("moves only through the PRD-approved 5/7 -> 6/7 -> 7/7 sequence", async () => {
+    resetDemoState();
+    const initial = await analyzeCase(request, { baseUrl: "" });
+    expect(initial.requirements_met).toBe(5);
+    await expect(addVerifiedPtEvidence(request)).rejects.toMatchObject({ code: "UNAVAILABLE" });
+
+    const confirmed = await confirmInstability(request);
+    expect(confirmed.requirements_met).toBe(6);
+    expect(confirmed.identity_status.provider_agent_verified).toBe(false);
+
+    expect(await verifyPtAgent()).toBe(true);
+    const ready = await addVerifiedPtEvidence(request);
+    expect(ready.status).toBe("READY_FOR_REVIEW");
+    expect(ready.requirements_met).toBe(7);
+    expect(ready.missing_requirements).toEqual([]);
+    resetDemoState();
+  });
+
+  it("never leaks prior local demo state after reset", async () => {
+    resetDemoState();
+    await confirmInstability(request);
+    resetDemoState();
+    const result = await analyzeCase(request, { baseUrl: "" });
+    expect(result.requirements_met).toBe(5);
     expect(result.identity_status.provider_agent_verified).toBe(false);
   });
 });
