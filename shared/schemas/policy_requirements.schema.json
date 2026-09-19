@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "PolicyRequirements",
+  "type": "object",
+  "required": ["insurer", "procedure", "policy_version", "requirements"],
+  "properties": {
+    "insurer": {"type": "string"},
+    "procedure": {"type": "string"},
+    "policy_version": {"type": ["string", "null"]},
+    "requirements": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["criterion_id", "description", "type", "required_value", "source_label", "source_location"],
+        "properties": {
+          "criterion_id": {"type": "string"}, "description": {"type": "string"},
+          "type": {"enum": ["boolean", "numeric_min", "numeric_max", "categorical", "text_presence"]},
+          "required_value": {}, "unit": {"type": "string"},
+          "source_label": {"type": "string"}, "source_location": {"type": "string"}
+        }
+      }
+    }
+  }
+}

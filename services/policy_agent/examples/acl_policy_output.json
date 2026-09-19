@@ -1,0 +1,11 @@
+{
+  "insurer": "ExampleHealth PPO",
+  "procedure": "ACL_RECONSTRUCTION",
+  "policy_version": "2026-09",
+  "requirements": [
+    {"criterion_id": "MRI_CONFIRMED", "description": "MRI confirmation of ACL tear", "type": "boolean", "required_value": true, "source_label": "ACL Reconstruction Policy", "source_location": "Section 3.1"},
+    {"criterion_id": "PT_WEEKS", "description": "At least 6 weeks of physical therapy", "type": "numeric_min", "required_value": 6, "unit": "weeks", "source_label": "ACL Reconstruction Policy", "source_location": "Section 4.2"},
+    {"criterion_id": "PERSISTENT_INSTABILITY", "description": "Persistent functional instability", "type": "boolean", "required_value": true, "source_label": "ACL Reconstruction Policy", "source_location": "Section 4.3"},
+    {"criterion_id": "RECENT_PHYSICAL_EXAM", "description": "Recent qualifying physical examination", "type": "boolean", "required_value": true, "source_label": "ACL Reconstruction Policy", "source_location": "Section 4.4"}
+  ]
+}

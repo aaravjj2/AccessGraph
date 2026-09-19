@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AccessGraph | Payer Policy Agent</title>
+  <style>
+    :root { --ink:#102a43; --muted:#627d98; --line:#d9e2ec; --blue:#146c94; --blue-dark:#0b4f6c; --soft:#f0f7fa; --green:#197a52; --amber:#9a5a00; }
+    * { box-sizing:border-box; } body { margin:0; background:#f7fafc; color:var(--ink); font:15px/1.45 Inter, ui-sans-serif, system-ui, sans-serif; }
+    header { background:linear-gradient(115deg,#092f46,#146c94); color:white; padding:28px max(24px,calc((100vw - 1180px)/2)); }
+    header p { margin:6px 0 0; color:#d9eef6; } .eyebrow { text-transform:uppercase; font-size:11px; letter-spacing:.11em; font-weight:800; color:#8fdae6; }
+    main { max-width:1180px; margin:28px auto; padding:0 24px 42px; } .notice { padding:12px 14px; border-left:4px solid #d29127; background:#fff8e9; color:#694b11; margin-bottom:22px; border-radius:3px; }
+    .grid { display:grid; grid-template-columns:minmax(330px,.92fr) minmax(410px,1.3fr); gap:22px; align-items:start; } .card { background:white; border:1px solid var(--line); border-radius:10px; box-shadow:0 2px 8px #102a4309; }
+    .card h2 { font-size:17px; margin:0; padding:18px 20px; border-bottom:1px solid var(--line); } .content { padding:20px; }
+    label { display:block; font-size:12px; font-weight:750; letter-spacing:.025em; margin:0 0 6px; } input, textarea { width:100%; border:1px solid #b9c8d5; border-radius:6px; padding:10px; font:inherit; color:var(--ink); background:#fff; } input:focus, textarea:focus { outline:3px solid #b8e0eb; border-color:var(--blue); } textarea { min-height:205px; resize:vertical; }
+    .fields { display:grid; grid-template-columns:1fr 1fr; gap:13px; margin-bottom:15px; } .full { grid-column:1/-1; }.actions { display:flex; gap:10px; margin-top:16px; flex-wrap:wrap; } button { border:0; border-radius:6px; font:inherit; font-weight:750; padding:10px 15px; cursor:pointer; } .primary { color:white; background:var(--blue); } .primary:hover { background:var(--blue-dark); } .secondary { color:var(--blue-dark); background:#e7f3f7; }
+    .empty { color:var(--muted); padding:28px 20px; text-align:center; } .summary { padding:18px 20px 8px; background:var(--soft); border-bottom:1px solid var(--line); } .summary strong { display:block; font-size:18px; } .meta { color:var(--muted); font-size:13px; margin-top:3px; }
+    .criteria { padding:8px 20px 20px; } .criterion { padding:15px 0; border-bottom:1px solid var(--line); } .criterion:last-child { border:0; } .criterion-top { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; } .criterion h3 { margin:0; font-size:15px; } .pill { flex:none; background:#e5f4eb; color:var(--green); border-radius:999px; padding:3px 8px; font-weight:800; font-size:11px; } .detail { margin:6px 0 0; color:var(--muted); } .source { margin-top:9px; font-size:12px; color:#486581; } .source b { color:var(--blue-dark); } .error { margin:16px 20px; color:#9b1c1c; background:#fff0f0; padding:12px; border-radius:6px; }
+    footer { color:var(--muted); font-size:12px; margin-top:20px; } @media(max-width:800px){ .grid { grid-template-columns:1fr; } header { padding:22px 24px; } }
+  </style>
+</head>
+<body>
+  <header><div class="eyebrow">AccessGraph · Prior Authorization Intelligence</div><h1>Payer Policy Agent</h1><p>Turn payer policy text into explainable, structured authorization criteria.</p></header>
+  <main>
+    <div class="notice">Policy criteria are extracted from the supplied document only. This tool does not evaluate patient readiness or predict insurer approval.</div>
+    <div class="grid">
+      <section class="card"><h2>Policy document</h2><form class="content" id="policy-form">
+        <div class="fields"><div><label for="insurer">INSURER</label><input id="insurer" required value="ExampleHealth PPO"></div><div><label for="version">POLICY VERSION</label><input id="version" value="2026-09"></div><div class="full"><label for="procedure">PROCEDURE</label><input id="procedure" required value="ACL_RECONSTRUCTION"></div></div>
+        <label for="text">POLICY TEXT</label><textarea id="text" required>Section 3.1: Coverage requires MRI confirmation of ACL tear.
+Section 4.2: The member must complete at least 6 weeks of physical therapy or other conservative treatment.
+Section 4.3: Persistent functional instability must be documented.
+Section 4.4: A recent qualifying physical examination is required.</textarea>
+        <div class="actions"><button class="primary" type="submit">Extract requirements</button><button class="secondary" id="demo" type="button">Reset ACL demo</button></div>
+      </form></section>
+      <section class="card"><h2>Structured policy requirements</h2><div id="result" class="empty">Submit a policy document to see machine-readable, source-backed criteria.</div></section>
+    </div>
+    <footer>Demo output is deterministic and designed for the shared AccessGraph ACL reconstruction case.</footer>
+  </main>
+  <script>
+    const form = document.querySelector('#policy-form'), result = document.querySelector('#result');
+    const defaults = { insurer:'ExampleHealth PPO', version:'2026-09', procedure:'ACL_RECONSTRUCTION', text:`Section 3.1: Coverage requires MRI confirmation of ACL tear.
+Section 4.2: The member must complete at least 6 weeks of physical therapy or other conservative treatment.
+Section 4.3: Persistent functional instability must be documented.
+Section 4.4: A recent qualifying physical examination is required.` };
+    document.querySelector('#demo').onclick = () => Object.entries(defaults).forEach(([id,value]) => document.querySelector('#'+id).value=value);
+    const escape = value => String(value).replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
+    function display(data) {
+      const rows = data.requirements.map(r => `<article class="criterion"><div class="criterion-top"><div><h3>${escape(r.description)}</h3><p class="detail"><b>${escape(r.criterion_id)}</b> · ${escape(r.type)} · Required: ${escape(r.required_value)}${r.unit ? ' '+escape(r.unit):''}</p></div><span class="pill">SOURCE-BACKED</span></div><p class="source"><b>${escape(r.source_label)}</b> · ${escape(r.source_location)}</p></article>`).join('');
+      result.className=''; result.innerHTML=`<div class="summary"><strong>${data.requirements.length} criterion${data.requirements.length===1?'':'a'} extracted</strong><div class="meta">${escape(data.insurer)} · ${escape(data.procedure)} · Version: ${escape(data.policy_version || 'Not supplied')}</div></div><div class="criteria">${rows || '<p class="empty">No supported procedure-specific criteria were found in this policy text.</p>'}</div>`;
+    }
+    form.onsubmit = async event => { event.preventDefault(); result.className='empty'; result.textContent='Extracting structured criteria…'; const payload={ insurer:insurer.value, procedure:procedure.value, policy_version:version.value||null, documents:[{source_id:'ui_policy_document',source_label:'Policy document',text:text.value}]}; try { const response=await fetch('/policy/extract',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)}); const data=await response.json(); if(!response.ok) throw Error(data.error||'Extraction failed'); display(data); } catch(error) { result.className='error'; result.textContent=error.message; } };
+  </script>
+</body>
+</html>

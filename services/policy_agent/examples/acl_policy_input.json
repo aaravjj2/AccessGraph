@@ -1,0 +1,12 @@
+{
+  "insurer": "ExampleHealth PPO",
+  "procedure": "ACL_RECONSTRUCTION",
+  "policy_version": "2026-09",
+  "documents": [
+    {
+      "source_id": "policy_acl_2026_09",
+      "source_label": "ACL Reconstruction Policy",
+      "text": "Section 3.1: Coverage requires MRI confirmation of ACL tear.\nSection 4.2: The member must complete at least 6 weeks of physical therapy or other conservative treatment.\nSection 4.3: Persistent functional instability must be documented.\nSection 4.4: A recent qualifying physical examination is required."
+    }
+  ]
+}
