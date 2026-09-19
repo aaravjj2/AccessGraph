@@ -25,6 +25,7 @@ test("ACL case from setup through source-backed explanation and next action", as
   await expect(
     page.getByRole("heading", {
       name: "Confirm the positive Lachman finding",
+          exact: true,
     }),
   ).toBeVisible();
   await expect(page.getByText("$1,450", { exact: false })).toBeVisible();
