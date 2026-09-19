@@ -29,6 +29,35 @@ export const errorMessages: Record<AnalysisErrorCode, { title: string; detail: s
 
 const configuredUrl = import.meta.env.VITE_ORCHESTRATOR_URL?.trim() ?? "";
 export const isMockMode = !configuredUrl;
+type MockStage = "initial" | "confirmed" | "verified" | "ready";
+let mockStage: MockStage = "initial";
+
+export function resetDemoState() {
+  mockStage = "initial";
+}
+
+function mockResult(request: AnalyzeCaseRequest): AuthorizationResult {
+  const result = structuredClone(fixture) as AuthorizationResult;
+  const instability = result.explanations.find((item) => item.criterion_id === "FUNCTIONAL_INSTABILITY")!;
+  const pt = result.explanations.find((item) => item.criterion_id === "PT_DURATION")!;
+  if (mockStage !== "initial") {
+    instability.result = "SATISFIED";
+    instability.patient_evidence = "Clinician confirmed positive Lachman finding as functional instability. [Source: Orthopedic Note, page 1]";
+    result.requirements_met = 6;
+    result.authorization_readiness = 0.8571;
+    result.missing_requirements = result.missing_requirements.filter((item) => item.criterion_id !== "FUNCTIONAL_INSTABILITY");
+  }
+  if (mockStage === "verified" || mockStage === "ready") result.identity_status.provider_agent_verified = true;
+  if (mockStage === "ready") {
+    pt.result = "SATISFIED";
+    pt.patient_evidence = "49 documented days of conservative therapy after verified PT evidence. [Source: PT Agent Record, synthetic]";
+    result.requirements_met = 7;
+    result.authorization_readiness = 1;
+    result.status = "READY_FOR_REVIEW";
+    result.missing_requirements = [];
+  }
+  return parseAuthorizationResult(result, request);
+}
 
 export function parseAuthorizationResult(data: unknown, request: AnalyzeCaseRequest): AuthorizationResult {
   const parsed = authorizationResultSchema.safeParse(data);
@@ -61,7 +90,7 @@ export async function analyzeCase(input: AnalyzeCaseRequest, options: {
   if (!baseUrl) {
     options.signal?.throwIfAborted();
     if (request.insurer !== "ExampleHealth PPO") throw new AnalysisError("NO_POLICY");
-    return parseAuthorizationResult(structuredClone(fixture), request);
+    return mockResult(request);
   }
   const timeout = AbortSignal.timeout(options.timeoutMs ?? 30_000);
   const signal = options.signal ? AbortSignal.any([options.signal, timeout]) : timeout;
@@ -95,7 +124,10 @@ export async function analyzeCase(input: AnalyzeCaseRequest, options: {
 }
 
 export async function confirmInstability(request: AnalyzeCaseRequest): Promise<AuthorizationResult> {
-  if (!configuredUrl) throw new AnalysisError("UNAVAILABLE");
+  if (!configuredUrl) {
+    mockStage = "confirmed";
+    return mockResult(request);
+  }
   return parseAuthorizationResult(
     await requestJson(`/cases/${request.patient_id}/confirm-instability`, { method: "POST" }),
     request,
@@ -103,13 +135,20 @@ export async function confirmInstability(request: AnalyzeCaseRequest): Promise<A
 }
 
 export async function verifyPtAgent(): Promise<boolean> {
-  if (!configuredUrl) throw new AnalysisError("UNAVAILABLE");
+  if (!configuredUrl) {
+    mockStage = "verified";
+    return true;
+  }
   const value = await requestJson("/agents/pt-agent/verify", { method: "POST" }) as { verified?: boolean };
   return value.verified === true;
 }
 
 export async function addVerifiedPtEvidence(request: AnalyzeCaseRequest): Promise<AuthorizationResult> {
-  if (!configuredUrl) throw new AnalysisError("UNAVAILABLE");
+  if (!configuredUrl) {
+    if (mockStage !== "verified") throw new AnalysisError("UNAVAILABLE");
+    mockStage = "ready";
+    return mockResult(request);
+  }
   return parseAuthorizationResult(
     await requestJson(`/cases/${request.patient_id}/external-pt-evidence`, { method: "POST" }),
     request,
