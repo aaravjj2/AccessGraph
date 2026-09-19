@@ -55,7 +55,7 @@ test("ACL case from setup through source-backed explanation and next action", as
   ).toBeVisible();
   await page.getByRole("button", { name: "Close dialog" }).click();
   await page.getByRole("button", { name: "Needs attention 2" }).click();
-  await expect(page.getByRole("button", { name: /^Explain / })).toHaveCount(1);
+  await expect(page.getByRole("button", { name: /^Explain / })).toHaveCount(2);
   await page.emulateMedia({ media: "print" });
   await expect(page.getByRole("button", { name: /^Explain / })).toHaveCount(7);
   await page.emulateMedia({ media: "screen" });
