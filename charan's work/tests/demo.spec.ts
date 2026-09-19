@@ -16,47 +16,47 @@ test("ACL case from setup through source-backed explanation and next action", as
     page.getByRole("region", { name: "Analyzing authorization readiness" }),
   ).toBeVisible();
   await expect(
-    page.getByRole("img", { name: "75% authorization readiness" }),
+    page.getByRole("img", { name: "71% authorization readiness" }),
   ).toBeVisible();
   await expect(
-    page.getByText("Needs more evidence", { exact: true }),
+    page.getByText("Blocked", { exact: true }),
   ).toBeVisible();
-  await expect(page.getByText("3 of 4", { exact: true })).toBeVisible();
+  await expect(page.getByText("5 of 7", { exact: true })).toBeVisible();
   await expect(
     page.getByRole("heading", {
-      name: "Upload the most recent orthopedic physical exam note",
+      name: "Confirm the positive Lachman finding",
     }),
   ).toBeVisible();
-  await expect(page.getByText("$1,200", { exact: false })).toBeVisible();
+  await expect(page.getByText("$1,450", { exact: false })).toBeVisible();
   await expect(page.getByText("Verified", { exact: true })).toHaveCount(2);
   await page
-    .getByRole("button", { name: "Explain Conservative treatment" })
+    .getByRole("button", { name: "Explain Conservative treatment duration" })
     .click();
   const drawer = page.getByRole("dialog");
   await expect(
     drawer.getByText("PT Progress Note, page 2", { exact: true }),
   ).toBeVisible();
   await expect(
-    drawer.getByText("ACL Reconstruction Policy, Section 4.2", { exact: true }),
+    drawer.getByText("ACL Policy 2026.09, Section 4.3", { exact: true }),
   ).toBeVisible();
   await page.keyboard.press("Escape");
   await expect(
-    page.getByRole("button", { name: "Explain Conservative treatment" }),
+    page.getByRole("button", { name: "Explain Conservative treatment duration" }),
   ).toBeFocused();
   await page.getByRole("button", { name: "Review missing evidence" }).click();
   await expect(
     drawer.getByText("No supporting source was identified in this analysis."),
   ).toBeVisible();
   await expect(
-    drawer.getByText("Upload the most recent orthopedic physical exam note", {
+    drawer.getByText("Confirm the positive Lachman finding", {
       exact: true,
     }),
   ).toBeVisible();
   await page.getByRole("button", { name: "Close dialog" }).click();
-  await page.getByRole("button", { name: "Needs attention 1" }).click();
+  await page.getByRole("button", { name: "Needs attention 2" }).click();
   await expect(page.getByRole("button", { name: /^Explain / })).toHaveCount(1);
   await page.emulateMedia({ media: "print" });
-  await expect(page.getByRole("button", { name: /^Explain / })).toHaveCount(4);
+  await expect(page.getByRole("button", { name: /^Explain / })).toHaveCount(7);
   await page.emulateMedia({ media: "screen" });
   expect(errors).toEqual([]);
 });
@@ -90,7 +90,7 @@ test("cancel returns to setup and local files do not alter analyzed evidence", a
     .getByRole("button", { name: "Analyze Authorization Readiness" })
     .click();
   await expect(
-    page.getByRole("img", { name: "75% authorization readiness" }),
+    page.getByRole("img", { name: "71% authorization readiness" }),
   ).toBeVisible();
 });
 
@@ -108,7 +108,7 @@ test("mobile flow has no horizontal overflow and explanation remains usable", as
     .getByRole("button", { name: "Analyze Authorization Readiness" })
     .click();
   await expect(
-    page.getByRole("img", { name: "75% authorization readiness" }),
+    page.getByRole("img", { name: "71% authorization readiness" }),
   ).toBeVisible();
   expect(
     await page.evaluate(
