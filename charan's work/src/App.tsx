@@ -22,6 +22,7 @@ import { ProcessingStepper } from "./components/ProcessingStepper";
 import {
   CostEstimateCard,
   CriteriaChecklist,
+  DemoLifecycleCard,
   IdentityVerificationCard,
   NextBestActionCard,
   ReadinessCard,
@@ -34,8 +35,11 @@ import {
 } from "./components/Dialogs";
 import {
   AnalysisError,
+  addVerifiedPtEvidence,
   analyzeCase,
+  confirmInstability,
   errorMessages,
+  verifyPtAgent,
   isMockMode,
 } from "./lib/api";
 import type { AnalyzeCaseRequest, AuthorizationResult } from "./lib/contracts";
@@ -56,6 +60,7 @@ export default function App() {
   );
   const [records, setRecords] = useState<LocalRecord[]>([]);
   const [mobileNav, setMobileNav] = useState(false);
+  const [lifecycleBusy, setLifecycleBusy] = useState(false);
   const controller = useRef<AbortController | null>(null);
   const heading = useRef<HTMLHeadingElement>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -108,6 +113,26 @@ export default function App() {
           : new AnalysisError("UNAVAILABLE"),
       );
       setStage("setup");
+    }
+  }
+  async function runLifecycleAction(
+    action: "confirm" | "verify" | "evidence",
+  ) {
+    if (!result) return;
+    setLifecycleBusy(true);
+    setError(null);
+    try {
+      const next =
+        action === "confirm"
+          ? await confirmInstability(request)
+          : action === "evidence"
+            ? await addVerifiedPtEvidence(request)
+            : (await verifyPtAgent(), await analyzeCase(request));
+      setResult(next);
+    } catch (cause) {
+      setError(cause instanceof AnalysisError ? cause : new AnalysisError("UNAVAILABLE"));
+    } finally {
+      setLifecycleBusy(false);
     }
   }
   function returnToSetup() {
@@ -385,6 +410,14 @@ export default function App() {
                   onDocuments={openDocuments}
                 />
               </div>
+              <DemoLifecycleCard
+                result={result}
+                enabled={!isMockMode}
+                busy={lifecycleBusy}
+                onConfirm={() => runLifecycleAction("confirm")}
+                onVerify={() => runLifecycleAction("verify")}
+                onAddEvidence={() => runLifecycleAction("evidence")}
+              />
               <div className="result-detail-grid">
                 <CriteriaChecklist
                   result={result}
